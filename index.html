@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>McCrack Browser</title>
+
+<style>
+@font-face {
+  font-family: 'OrbitronCustom';
+  src: url('https://fonts.gstatic.com/s/orbitron/v35/yMJMMIlzdpvBhQQL_SC3X9yhF25-T1nysimBoWgz.woff2') format('woff2');
+}
+
+body {
+  margin: 0;
+  font-family: 'OrbitronCustom', sans-serif;
+  background: linear-gradient(135deg, #000, #fff);
+  color: #fff;
+  overflow: hidden;
+}
+
+/* TOP BAR */
+.topbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  background: rgba(0,0,0,0.8);
+  backdrop-filter: blur(10px);
+}
+
+/* BUTTONS */
+button {
+  padding: 8px 12px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  background: linear-gradient(45deg, #000, #fff);
+  color: #000;
+  font-weight: bold;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+button:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 10px rgba(255,255,255,0.5);
+}
+
+/* URL BAR */
+input {
+  flex: 1;
+  padding: 8px;
+  border-radius: 6px;
+  border: none;
+  outline: none;
+  font-family: inherit;
+}
+
+/* TABS */
+.tabs {
+  display: flex;
+  gap: 5px;
+  padding: 5px;
+  background: rgba(255,255,255,0.1);
+}
+
+.tab {
+  padding: 5px 10px;
+  background: rgba(255,255,255,0.2);
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.tab.active {
+  background: white;
+  color: black;
+}
+
+/* IFRAME */
+iframe {
+  width: 100%;
+  height: calc(100vh - 90px);
+  border: none;
+  background: white;
+}
+
+/* SETTINGS PANEL */
+.settings {
+  position: fixed;
+  right: 20px;
+  top: 60px;
+  width: 200px;
+  background: rgba(0,0,0,0.9);
+  padding: 10px;
+  border-radius: 10px;
+  display: none;
+}
+
+.settings h3 {
+  margin-top: 0;
+}
+
+</style>
+</head>
+
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <button onclick="back()">⟵</button>
+  <button onclick="forward()">⟶</button>
+  <button onclick="reload()">⟳</button>
+
+  <input id="urlBar" placeholder="Search or enter URL..." />
+
+  <button onclick="go()">Go</button>
+  <button onclick="toggleSettings()">⚙</button>
+</div>
+
+<!-- TABS -->
+<div class="tabs" id="tabs"></div>
+
+<!-- BROWSER -->
+<iframe id="frame"></iframe>
+
+<!-- SETTINGS -->
+<div class="settings" id="settings">
+  <h3>Settings</h3>
+  <button onclick="newTab()">New Tab</button>
+  <button onclick="closeTab()">Close Tab</button>
+</div>
+
+<script>
+const proxy = "https://mccrackbrowser.patrickmango499.workers.dev/?url=";
+
+let tabs = [];
+let activeTab = 0;
+
+/* CREATE TAB */
+function newTab() {
+  let tab = { url: "https://www.google.com" };
+  tabs.push(tab);
+  activeTab = tabs.length - 1;
+  renderTabs();
+  loadTab();
+}
+
+/* CLOSE TAB */
+function closeTab() {
+  if (tabs.length > 1) {
+    tabs.splice(activeTab, 1);
+    activeTab = 0;
+    renderTabs();
+    loadTab();
+  }
+}
+
+/* RENDER TABS */
+function renderTabs() {
+  const tabContainer = document.getElementById("tabs");
+  tabContainer.innerHTML = "";
+
+  tabs.forEach((tab, i) => {
+    let div = document.createElement("div");
+    div.className = "tab" + (i === activeTab ? " active" : "");
+    div.innerText = "Tab " + (i + 1);
+    div.onclick = () => {
+      activeTab = i;
+      loadTab();
+      renderTabs();
+    };
+    tabContainer.appendChild(div);
+  });
+}
+
+/* LOAD TAB */
+function loadTab() {
+  let frame = document.getElementById("frame");
+  let url = tabs[activeTab].url;
+  frame.src = proxy + encodeURIComponent(url);
+  document.getElementById("urlBar").value = url;
+}
+
+/* NAVIGATION */
+function go() {
+  let url = document.getElementById("urlBar").value;
+
+  if (!url.startsWith("http")) {
+    if (!url.includes(".")) {
+      url = "https://www.google.com/search?q=" + encodeURIComponent(url);
+    } else {
+      url = "https://" + url;
+    }
+  }
+
+  tabs[activeTab].url = url;
+  loadTab();
+}
+
+function back() {
+  document.getElementById("frame").contentWindow.history.back();
+}
+
+function forward() {
+  document.getElementById("frame").contentWindow.history.forward();
+}
+
+function reload() {
+  document.getElementById("frame").contentWindow.location.reload();
+}
+
+/* SETTINGS */
+function toggleSettings() {
+  const s = document.getElementById("settings");
+  s.style.display = s.style.display === "block" ? "none" : "block";
+}
+
+/* ENTER KEY */
+document.getElementById("urlBar").addEventListener("keypress", e => {
+  if (e.key === "Enter") go();
+});
+
+/* INIT */
+newTab();
+</script>
+
+</body>
+</html>
