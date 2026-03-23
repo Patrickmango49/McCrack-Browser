@@ -290,7 +290,7 @@
       let url = value.trim();
       if (!url) return "";
 
-      if (!/^https?:\/\//i.test(url)) {
+      if (!/^https?:\/\//i.test(url) && !url.startsWith("proxy://")) {
         if (!url.includes(".") || /\s/.test(url)) {
           url = `https://www.google.com/search?q=${encodeURIComponent(url)}`;
         } else {
