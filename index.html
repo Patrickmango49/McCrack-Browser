@@ -1,228 +1,690 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>McCrack Browser</title>
-
-<style>
-@font-face {
-  font-family: 'OrbitronCustom';
-  src: url('https://fonts.gstatic.com/s/orbitron/v35/yMJMMIlzdpvBhQQL_SC3X9yhF25-T1nysimBoWgz.woff2') format('woff2');
-}
-
-body {
-  margin: 0;
-  font-family: 'OrbitronCustom', sans-serif;
-  background: linear-gradient(135deg, #000, #fff);
-  color: #fff;
-  overflow: hidden;
-}
-
-/* TOP BAR */
-.topbar {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px;
-  background: rgba(0,0,0,0.8);
-  backdrop-filter: blur(10px);
-}
-
-/* BUTTONS */
-button {
-  padding: 8px 12px;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  background: linear-gradient(45deg, #000, #fff);
-  color: #000;
-  font-weight: bold;
-  transition: transform 0.2s, box-shadow 0.2s;
-}
-
-button:hover {
-  transform: scale(1.05);
-  box-shadow: 0 0 10px rgba(255,255,255,0.5);
-}
-
-/* URL BAR */
-input {
-  flex: 1;
-  padding: 8px;
-  border-radius: 6px;
-  border: none;
-  outline: none;
-  font-family: inherit;
-}
-
-/* TABS */
-.tabs {
-  display: flex;
-  gap: 5px;
-  padding: 5px;
-  background: rgba(255,255,255,0.1);
-}
-
-.tab {
-  padding: 5px 10px;
-  background: rgba(255,255,255,0.2);
-  border-radius: 5px;
-  cursor: pointer;
-}
-
-.tab.active {
-  background: white;
-  color: black;
-}
-
-/* IFRAME */
-iframe {
-  width: 100%;
-  height: calc(100vh - 90px);
-  border: none;
-  background: white;
-}
-
-/* SETTINGS PANEL */
-.settings {
-  position: fixed;
-  right: 20px;
-  top: 60px;
-  width: 200px;
-  background: rgba(0,0,0,0.9);
-  padding: 10px;
-  border-radius: 10px;
-  display: none;
-}
-
-.settings h3 {
-  margin-top: 0;
-}
-
-</style>
-</head>
-
-<body>
-
-<!-- TOP BAR -->
-<div class="topbar">
-  <button onclick="back()">⟵</button>
-  <button onclick="forward()">⟶</button>
-  <button onclick="reload()">⟳</button>
-
-  <input id="urlBar" placeholder="Search or enter URL..." />
-
-  <button onclick="go()">Go</button>
-  <button onclick="toggleSettings()">⚙</button>
-</div>
-
-<!-- TABS -->
-<div class="tabs" id="tabs"></div>
-
-<!-- BROWSER -->
-<iframe id="frame"></iframe>
-
-<!-- SETTINGS -->
-<div class="settings" id="settings">
-  <h3>Settings</h3>
-  <button onclick="newTab()">New Tab</button>
-  <button onclick="closeTab()">Close Tab</button>
-</div>
-
-<script>
-const proxy = "https://mccrackbrowser.patrickmango499.workers.dev/?url=";
-
-let tabs = [];
-let activeTab = 0;
-
-/* CREATE TAB */
-function newTab() {
-  let tab = { url: "https://www.google.com" };
-  tabs.push(tab);
-  activeTab = tabs.length - 1;
-  renderTabs();
-  loadTab();
-}
-
-/* CLOSE TAB */
-function closeTab() {
-  if (tabs.length > 1) {
-    tabs.splice(activeTab, 1);
-    activeTab = 0;
-    renderTabs();
-    loadTab();
-  }
-}
-
-/* RENDER TABS */
-function renderTabs() {
-  const tabContainer = document.getElementById("tabs");
-  tabContainer.innerHTML = "";
-
-  tabs.forEach((tab, i) => {
-    let div = document.createElement("div");
-    div.className = "tab" + (i === activeTab ? " active" : "");
-    div.innerText = "Tab " + (i + 1);
-    div.onclick = () => {
-      activeTab = i;
-      loadTab();
-      renderTabs();
-    };
-    tabContainer.appendChild(div);
-  });
-}
-
-/* LOAD TAB */
-function loadTab() {
-  let frame = document.getElementById("frame");
-  let url = tabs[activeTab].url;
-  frame.src = proxy + encodeURIComponent(url);
-  document.getElementById("urlBar").value = url;
-}
-
-/* NAVIGATION */
-function go() {
-  let url = document.getElementById("urlBar").value;
-
-  if (!url.startsWith("http")) {
-    if (!url.includes(".")) {
-      url = "https://www.google.com/search?q=" + encodeURIComponent(url);
-    } else {
-      url = "https://" + url;
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>McCrack Browser</title>
+  <style>
+    :root {
+      --bg: #06070a;
+      --panel: rgba(12, 14, 20, 0.86);
+      --panel-strong: rgba(8, 10, 16, 0.95);
+      --panel-soft: rgba(255, 255, 255, 0.04);
+      --line: rgba(255, 255, 255, 0.08);
+      --text: #f5f7fb;
+      --muted: #97a1bb;
+      --accent: #8b5cf6;
+      --accent-2: #22d3ee;
+      --accent-3: #7cffb2;
+      --danger: #ff6b81;
+      --shadow: 0 30px 80px rgba(0, 0, 0, 0.55);
+      --radius-xl: 28px;
+      --radius-lg: 20px;
+      --radius-md: 14px;
     }
-  }
 
-  tabs[activeTab].url = url;
-  loadTab();
-}
+    * {
+      box-sizing: border-box;
+    }
 
-function back() {
-  document.getElementById("frame").contentWindow.history.back();
-}
+    @font-face {
+      font-family: "OrbitronCustom";
+      src: url("https://fonts.gstatic.com/s/orbitron/v35/yMJMMIlzdpvBhQQL_SC3X9yhF25-T1nysimBoWgz.woff2") format("woff2");
+    }
 
-function forward() {
-  document.getElementById("frame").contentWindow.history.forward();
-}
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(139, 92, 246, 0.25), transparent 30%),
+        radial-gradient(circle at top right, rgba(34, 211, 238, 0.22), transparent 28%),
+        radial-gradient(circle at bottom, rgba(124, 255, 178, 0.12), transparent 30%),
+        linear-gradient(145deg, #020307, #090b11 42%, #040507 100%);
+      overflow: hidden;
+    }
 
-function reload() {
-  document.getElementById("frame").contentWindow.location.reload();
-}
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background-image: linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+      background-size: 36px 36px;
+      mask-image: radial-gradient(circle at center, black, transparent 85%);
+      opacity: 0.35;
+    }
 
-/* SETTINGS */
-function toggleSettings() {
-  const s = document.getElementById("settings");
-  s.style.display = s.style.display === "block" ? "none" : "block";
-}
+    .app-shell {
+      display: grid;
+      grid-template-columns: 300px 1fr;
+      gap: 18px;
+      height: 100vh;
+      padding: 18px;
+    }
 
-/* ENTER KEY */
-document.getElementById("urlBar").addEventListener("keypress", e => {
-  if (e.key === "Enter") go();
-});
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(22px);
+    }
 
-/* INIT */
-newTab();
-</script>
+    .sidebar {
+      border-radius: var(--radius-xl);
+      padding: 22px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      overflow: hidden;
+    }
 
+    .brand {
+      padding: 20px;
+      border-radius: 22px;
+      background: linear-gradient(160deg, rgba(139, 92, 246, 0.22), rgba(34, 211, 238, 0.08) 55%, rgba(255,255,255,0.02));
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .brand::after {
+      content: "McCrackOS";
+      position: absolute;
+      right: -14px;
+      top: 16px;
+      transform: rotate(90deg);
+      letter-spacing: 0.35em;
+      font-size: 0.7rem;
+      color: rgba(255,255,255,0.14);
+      font-family: "OrbitronCustom", sans-serif;
+    }
+
+    .eyebrow,
+    .section-title,
+    .logo {
+      font-family: "OrbitronCustom", sans-serif;
+      letter-spacing: 0.08em;
+    }
+
+    .eyebrow {
+      font-size: 0.72rem;
+      color: var(--accent-2);
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+
+    .logo {
+      font-size: 2rem;
+      margin: 0;
+      line-height: 1;
+    }
+
+    .brand p,
+    .status-card p,
+    .nav-card p,
+    .tip-card p,
+    .workspace-copy,
+    .tab-url,
+    .status-item span,
+    .footer-status,
+    .url-hint {
+      color: var(--muted);
+    }
+
+    .stack {
+      display: grid;
+      gap: 14px;
+    }
+
+    .status-card,
+    .nav-card,
+    .tip-card {
+      border-radius: var(--radius-lg);
+      padding: 18px;
+      background: var(--panel-soft);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .status-row,
+    .quick-links {
+      display: grid;
+      gap: 10px;
+    }
+
+    .status-item,
+    .bookmark {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px 14px;
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.04);
+    }
+
+    .status-item strong,
+    .bookmark strong,
+    .tab-title {
+      font-size: 0.95rem;
+    }
+
+    .bookmark {
+      cursor: pointer;
+      transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+    }
+
+    .bookmark:hover,
+    .bookmark:focus-visible {
+      transform: translateY(-1px);
+      border-color: rgba(124, 255, 178, 0.4);
+      background: rgba(124, 255, 178, 0.08);
+      outline: none;
+    }
+
+    .workspace {
+      min-width: 0;
+      display: grid;
+      grid-template-rows: auto auto 1fr auto;
+      gap: 16px;
+    }
+
+    .workspace-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 20px;
+      padding: 24px 28px;
+      border-radius: var(--radius-xl);
+    }
+
+    .workspace-header h2 {
+      margin: 8px 0 10px;
+      font-size: clamp(1.8rem, 3vw, 3rem);
+      line-height: 1;
+    }
+
+    .header-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 14px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      color: var(--muted);
+    }
+
+    .header-badge::before {
+      content: "";
+      width: 10px;
+      height: 10px;
+      border-radius: 999px;
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      box-shadow: 0 0 18px rgba(34, 211, 238, 0.65);
+    }
+
+    .control-bar {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      gap: 14px;
+      align-items: center;
+      padding: 16px 18px;
+      border-radius: 24px;
+    }
+
+    .nav-group,
+    .utility-group {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    button,
+    .icon-button {
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: linear-gradient(180deg, rgba(255,255,255,0.09), rgba(255,255,255,0.03));
+      color: var(--text);
+      border-radius: 14px;
+      padding: 12px 14px;
+      font: inherit;
+      cursor: pointer;
+      transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.06);
+    }
+
+    button:hover,
+    .icon-button:hover,
+    button:focus-visible,
+    .icon-button:focus-visible {
+      transform: translateY(-1px);
+      border-color: rgba(139, 92, 246, 0.5);
+      background: linear-gradient(180deg, rgba(139,92,246,0.22), rgba(34,211,238,0.08));
+      outline: none;
+    }
+
+    .accent-button {
+      background: linear-gradient(135deg, var(--accent), #5b7cff 55%, var(--accent-2));
+      color: white;
+      border: none;
+      font-weight: 700;
+      box-shadow: 0 10px 24px rgba(91, 124, 255, 0.28);
+    }
+
+    .danger-button:hover,
+    .danger-button:focus-visible {
+      border-color: rgba(255, 107, 129, 0.6);
+      background: rgba(255, 107, 129, 0.16);
+    }
+
+    .url-wrap {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+      padding: 8px 10px 8px 16px;
+      border-radius: 18px;
+      background: rgba(3, 6, 12, 0.74);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.03);
+    }
+
+    .url-prefix {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 36px;
+      height: 36px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, rgba(139, 92, 246, 0.35), rgba(34, 211, 238, 0.18));
+      font-size: 1.1rem;
+    }
+
+    .url-field {
+      min-width: 0;
+      flex: 1;
+      display: grid;
+      gap: 2px;
+    }
+
+    .url-field input {
+      width: 100%;
+      background: transparent;
+      border: none;
+      outline: none;
+      color: var(--text);
+      font: inherit;
+      font-size: 1rem;
+    }
+
+    .tabs-bar {
+      display: flex;
+      gap: 10px;
+      overflow-x: auto;
+      padding-bottom: 2px;
+    }
+
+    .tabs-bar::-webkit-scrollbar {
+      height: 8px;
+    }
+
+    .tabs-bar::-webkit-scrollbar-thumb {
+      background: rgba(255,255,255,0.12);
+      border-radius: 999px;
+    }
+
+    .tab {
+      min-width: 190px;
+      max-width: 240px;
+      padding: 14px 16px;
+      border-radius: 18px;
+      border: 1px solid rgba(255, 255, 255, 0.07);
+      background: rgba(255,255,255,0.04);
+      display: grid;
+      gap: 4px;
+      cursor: pointer;
+      transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+    }
+
+    .tab.active {
+      background: linear-gradient(160deg, rgba(139, 92, 246, 0.24), rgba(34, 211, 238, 0.12));
+      border-color: rgba(124, 255, 178, 0.45);
+      transform: translateY(-1px);
+    }
+
+    .browser-stage {
+      min-height: 0;
+      overflow: hidden;
+      display: grid;
+      grid-template-rows: auto 1fr;
+      border-radius: 30px;
+    }
+
+    .stage-topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 14px 18px;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      background: rgba(255,255,255,0.03);
+    }
+
+    .lights {
+      display: flex;
+      gap: 8px;
+    }
+
+    .lights span {
+      width: 12px;
+      height: 12px;
+      border-radius: 999px;
+      display: inline-block;
+    }
+
+    .lights span:nth-child(1) { background: #ff6b81; }
+    .lights span:nth-child(2) { background: #ffd166; }
+    .lights span:nth-child(3) { background: #7cffb2; }
+
+    .stage-meta {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      color: var(--muted);
+      font-size: 0.92rem;
+      flex-wrap: wrap;
+    }
+
+    iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+      background: #fff;
+    }
+
+    .footer-status {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: center;
+      padding: 0 6px;
+      font-size: 0.92rem;
+    }
+
+    .pulse {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .pulse::before {
+      content: "";
+      width: 9px;
+      height: 9px;
+      border-radius: 999px;
+      background: var(--accent-3);
+      box-shadow: 0 0 14px rgba(124, 255, 178, 0.6);
+    }
+
+    @media (max-width: 1100px) {
+      .app-shell {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto 1fr;
+        overflow: auto;
+        height: auto;
+        min-height: 100vh;
+      }
+
+      body {
+        overflow: auto;
+      }
+
+      .workspace {
+        min-height: 80vh;
+      }
+    }
+
+    @media (max-width: 860px) {
+      .workspace-header,
+      .control-bar {
+        grid-template-columns: 1fr;
+        display: grid;
+      }
+
+      .control-bar {
+        grid-template-columns: 1fr;
+      }
+
+      .nav-group,
+      .utility-group {
+        justify-content: center;
+      }
+
+      .footer-status,
+      .stage-topbar {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar panel">
+      <section class="brand">
+        <div class="eyebrow">System shell</div>
+        <h1 class="logo">McCrack Browser</h1>
+        <p>A full McCrackOS-inspired command deck with a polished neon-glass shell around the same worker-powered browsing flow.</p>
+      </section>
+
+      <section class="status-card">
+        <div class="section-title">System Status</div>
+        <div class="status-row" style="margin-top: 14px;">
+          <div class="status-item"><strong>Proxy Link</strong><span>Locked</span></div>
+          <div class="status-item"><strong>Theme Mode</strong><span>McCrackOS</span></div>
+          <div class="status-item"><strong>Session</strong><span id="tabCount">1 tab online</span></div>
+        </div>
+      </section>
+
+      <section class="nav-card">
+        <div class="section-title">Launch Pads</div>
+        <p style="margin: 10px 0 14px;">Quick destinations styled like a futuristic OS dock.</p>
+        <div class="quick-links">
+          <button class="bookmark" data-url="https://www.google.com"><strong>Search Nexus</strong><span>Google</span></button>
+          <button class="bookmark" data-url="https://www.youtube.com"><strong>Media Grid</strong><span>YouTube</span></button>
+          <button class="bookmark" data-url="https://github.com"><strong>Code Vault</strong><span>GitHub</span></button>
+          <button class="bookmark" data-url="https://discord.com/app"><strong>Comms Link</strong><span>Discord</span></button>
+        </div>
+      </section>
+
+      <section class="tip-card">
+        <div class="section-title">Pilot Tip</div>
+        <p>Type a URL, paste a link, or enter a search term. Searches route to Google, while direct URLs stay on the existing Cloudflare Worker endpoint.</p>
+      </section>
+    </aside>
+
+    <main class="workspace">
+      <section class="workspace-header panel">
+        <div>
+          <div class="eyebrow">McCrackOS browsing core</div>
+          <h2>Completely rebuilt UI, same worker pipeline.</h2>
+          <div class="workspace-copy">Everything was redesigned into a premium OS-style browser shell while preserving the current proxy behavior.</div>
+        </div>
+        <div class="header-badge">Worker tunnel active</div>
+      </section>
+
+      <section class="control-bar panel">
+        <div class="nav-group">
+          <button class="icon-button" onclick="back()">⟵</button>
+          <button class="icon-button" onclick="forward()">⟶</button>
+          <button class="icon-button" onclick="reloadFrame()">⟳</button>
+          <button class="icon-button" onclick="newTab()">＋</button>
+          <button class="icon-button danger-button" onclick="closeTab()">✕</button>
+        </div>
+
+        <div class="url-wrap">
+          <div class="url-prefix">⌘</div>
+          <div class="url-field">
+            <input id="urlBar" type="text" placeholder="Search the network or enter a URL" autocomplete="off" />
+            <div class="url-hint">Direct links use the existing McCrack Browser worker tunnel.</div>
+          </div>
+          <button class="accent-button" onclick="go()">Launch</button>
+        </div>
+
+        <div class="utility-group">
+          <button onclick="duplicateTab()">Duplicate</button>
+          <button onclick="focusUrlBar()">Focus URL</button>
+        </div>
+      </section>
+
+      <div class="tabs-bar" id="tabs"></div>
+
+      <section class="browser-stage panel">
+        <div class="stage-topbar">
+          <div class="lights"><span></span><span></span><span></span></div>
+          <div class="stage-meta">
+            <span id="activeLabel">Active: New Session</span>
+            <span id="proxyStatus">Tunnel: ready</span>
+          </div>
+        </div>
+        <iframe id="frame" title="McCrack Browser viewport"></iframe>
+      </section>
+
+      <div class="footer-status">
+        <div class="pulse">McCrackOS visual shell synced</div>
+        <div id="footerUrl">Ready for navigation</div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    const proxy = "https://mccrackbrowser.patrickmango499.workers.dev/?url=";
+
+    const tabs = [];
+    let activeTab = 0;
+
+    function formatTabLabel(url, index) {
+      try {
+        const parsed = new URL(url);
+        return parsed.hostname.replace(/^www\./, "") || `Tab ${index + 1}`;
+      } catch {
+        return `Tab ${index + 1}`;
+      }
+    }
+
+    function newTab(url = "https://www.google.com") {
+      tabs.push({ url });
+      activeTab = tabs.length - 1;
+      renderTabs();
+      loadTab();
+    }
+
+    function duplicateTab() {
+      if (!tabs.length) return;
+      newTab(tabs[activeTab].url);
+    }
+
+    function closeTab() {
+      if (tabs.length <= 1) return;
+      tabs.splice(activeTab, 1);
+      activeTab = Math.max(0, activeTab - 1);
+      renderTabs();
+      loadTab();
+    }
+
+    function renderTabs() {
+      const tabContainer = document.getElementById("tabs");
+      const tabCount = document.getElementById("tabCount");
+      tabContainer.innerHTML = "";
+
+      tabs.forEach((tab, i) => {
+        const div = document.createElement("button");
+        div.className = `tab${i === activeTab ? " active" : ""}`;
+        div.type = "button";
+        div.innerHTML = `
+          <div class="tab-title">${formatTabLabel(tab.url, i)}</div>
+          <div class="tab-url">${tab.url}</div>
+        `;
+        div.onclick = () => {
+          activeTab = i;
+          renderTabs();
+          loadTab();
+        };
+        tabContainer.appendChild(div);
+      });
+
+      tabCount.textContent = `${tabs.length} tab${tabs.length === 1 ? "" : "s"} online`;
+    }
+
+    function normalizeInput(value) {
+      let url = value.trim();
+      if (!url) return tabs[activeTab]?.url || "https://www.google.com";
+
+      if (!/^https?:\/\//i.test(url)) {
+        if (!url.includes(".") || /\s/.test(url)) {
+          url = `https://www.google.com/search?q=${encodeURIComponent(url)}`;
+        } else {
+          url = `https://${url}`;
+        }
+      }
+
+      return url;
+    }
+
+    function updateMeta(url) {
+      document.getElementById("urlBar").value = url;
+      document.getElementById("activeLabel").textContent = `Active: ${formatTabLabel(url, activeTab)}`;
+      document.getElementById("proxyStatus").textContent = `Tunnel: ${proxy}`;
+      document.getElementById("footerUrl").textContent = url;
+    }
+
+    function loadTab() {
+      if (!tabs.length) return;
+      const frame = document.getElementById("frame");
+      const url = tabs[activeTab].url;
+      frame.src = proxy + encodeURIComponent(url);
+      updateMeta(url);
+    }
+
+    function go(urlOverride) {
+      const inputValue = typeof urlOverride === "string" ? urlOverride : document.getElementById("urlBar").value;
+      const url = normalizeInput(inputValue);
+      tabs[activeTab].url = url;
+      renderTabs();
+      loadTab();
+    }
+
+    function back() {
+      document.getElementById("frame").contentWindow.history.back();
+    }
+
+    function forward() {
+      document.getElementById("frame").contentWindow.history.forward();
+    }
+
+    function reloadFrame() {
+      document.getElementById("frame").contentWindow.location.reload();
+    }
+
+    function focusUrlBar() {
+      const urlBar = document.getElementById("urlBar");
+      urlBar.focus();
+      urlBar.select();
+    }
+
+    document.getElementById("urlBar").addEventListener("keydown", (event) => {
+      if (event.key === "Enter") {
+        go();
+      }
+    });
+
+    document.querySelectorAll(".bookmark").forEach((button) => {
+      button.addEventListener("click", () => go(button.dataset.url));
+    });
+
+    newTab();
+  </script>
 </body>
 </html>
