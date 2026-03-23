@@ -1,228 +1,472 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>McCrack Browser</title>
-
-<style>
-@font-face {
-  font-family: 'OrbitronCustom';
-  src: url('https://fonts.gstatic.com/s/orbitron/v35/yMJMMIlzdpvBhQQL_SC3X9yhF25-T1nysimBoWgz.woff2') format('woff2');
-}
-
-body {
-  margin: 0;
-  font-family: 'OrbitronCustom', sans-serif;
-  background: linear-gradient(135deg, #000, #fff);
-  color: #fff;
-  overflow: hidden;
-}
-
-/* TOP BAR */
-.topbar {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px;
-  background: rgba(0,0,0,0.8);
-  backdrop-filter: blur(10px);
-}
-
-/* BUTTONS */
-button {
-  padding: 8px 12px;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  background: linear-gradient(45deg, #000, #fff);
-  color: #000;
-  font-weight: bold;
-  transition: transform 0.2s, box-shadow 0.2s;
-}
-
-button:hover {
-  transform: scale(1.05);
-  box-shadow: 0 0 10px rgba(255,255,255,0.5);
-}
-
-/* URL BAR */
-input {
-  flex: 1;
-  padding: 8px;
-  border-radius: 6px;
-  border: none;
-  outline: none;
-  font-family: inherit;
-}
-
-/* TABS */
-.tabs {
-  display: flex;
-  gap: 5px;
-  padding: 5px;
-  background: rgba(255,255,255,0.1);
-}
-
-.tab {
-  padding: 5px 10px;
-  background: rgba(255,255,255,0.2);
-  border-radius: 5px;
-  cursor: pointer;
-}
-
-.tab.active {
-  background: white;
-  color: black;
-}
-
-/* IFRAME */
-iframe {
-  width: 100%;
-  height: calc(100vh - 90px);
-  border: none;
-  background: white;
-}
-
-/* SETTINGS PANEL */
-.settings {
-  position: fixed;
-  right: 20px;
-  top: 60px;
-  width: 200px;
-  background: rgba(0,0,0,0.9);
-  padding: 10px;
-  border-radius: 10px;
-  display: none;
-}
-
-.settings h3 {
-  margin-top: 0;
-}
-
-</style>
-</head>
-
-<body>
-
-<!-- TOP BAR -->
-<div class="topbar">
-  <button onclick="back()">⟵</button>
-  <button onclick="forward()">⟶</button>
-  <button onclick="reload()">⟳</button>
-
-  <input id="urlBar" placeholder="Search or enter URL..." />
-
-  <button onclick="go()">Go</button>
-  <button onclick="toggleSettings()">⚙</button>
-</div>
-
-<!-- TABS -->
-<div class="tabs" id="tabs"></div>
-
-<!-- BROWSER -->
-<iframe id="frame"></iframe>
-
-<!-- SETTINGS -->
-<div class="settings" id="settings">
-  <h3>Settings</h3>
-  <button onclick="newTab()">New Tab</button>
-  <button onclick="closeTab()">Close Tab</button>
-</div>
-
-<script>
-const proxy = "https://mccrackbrowser.patrickmango499.workers.dev/?url=";
-
-let tabs = [];
-let activeTab = 0;
-
-/* CREATE TAB */
-function newTab() {
-  let tab = { url: "https://www.google.com" };
-  tabs.push(tab);
-  activeTab = tabs.length - 1;
-  renderTabs();
-  loadTab();
-}
-
-/* CLOSE TAB */
-function closeTab() {
-  if (tabs.length > 1) {
-    tabs.splice(activeTab, 1);
-    activeTab = 0;
-    renderTabs();
-    loadTab();
-  }
-}
-
-/* RENDER TABS */
-function renderTabs() {
-  const tabContainer = document.getElementById("tabs");
-  tabContainer.innerHTML = "";
-
-  tabs.forEach((tab, i) => {
-    let div = document.createElement("div");
-    div.className = "tab" + (i === activeTab ? " active" : "");
-    div.innerText = "Tab " + (i + 1);
-    div.onclick = () => {
-      activeTab = i;
-      loadTab();
-      renderTabs();
-    };
-    tabContainer.appendChild(div);
-  });
-}
-
-/* LOAD TAB */
-function loadTab() {
-  let frame = document.getElementById("frame");
-  let url = tabs[activeTab].url;
-  frame.src = proxy + encodeURIComponent(url);
-  document.getElementById("urlBar").value = url;
-}
-
-/* NAVIGATION */
-function go() {
-  let url = document.getElementById("urlBar").value;
-
-  if (!url.startsWith("http")) {
-    if (!url.includes(".")) {
-      url = "https://www.google.com/search?q=" + encodeURIComponent(url);
-    } else {
-      url = "https://" + url;
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>McCrack Browser</title>
+  <style>
+    :root {
+      --bg-top: #16181d;
+      --bg-bottom: #050608;
+      --chrome-top: rgba(35, 38, 45, 0.98);
+      --chrome-mid: rgba(25, 27, 33, 0.98);
+      --chrome-bottom: rgba(18, 20, 25, 0.98);
+      --tab-idle: rgba(255, 255, 255, 0.06);
+      --tab-active: #1d1f25;
+      --line: rgba(255, 255, 255, 0.09);
+      --line-strong: rgba(255, 255, 255, 0.14);
+      --text: #f4f7fb;
+      --muted: #98a0af;
+      --accent: #8ab4f8;
+      --button: rgba(255, 255, 255, 0.08);
+      --button-hover: rgba(255, 255, 255, 0.14);
+      --shadow: 0 24px 70px rgba(0, 0, 0, 0.55);
+      --radius-xl: 26px;
+      --radius-lg: 18px;
+      --radius-md: 12px;
     }
-  }
 
-  tabs[activeTab].url = url;
-  loadTab();
-}
+    * {
+      box-sizing: border-box;
+    }
 
-function back() {
-  document.getElementById("frame").contentWindow.history.back();
-}
+    html,
+    body {
+      margin: 0;
+      height: 100%;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top, rgba(255, 255, 255, 0.08), transparent 30%),
+        linear-gradient(180deg, var(--bg-top), #0e1015 18%, var(--bg-bottom) 100%);
+      overflow: hidden;
+    }
 
-function forward() {
-  document.getElementById("frame").contentWindow.history.forward();
-}
+    body {
+      padding: 18px;
+    }
 
-function reload() {
-  document.getElementById("frame").contentWindow.location.reload();
-}
+    .browser-window {
+      height: calc(100vh - 36px);
+      display: grid;
+      grid-template-rows: auto auto 1fr;
+      background: linear-gradient(180deg, var(--chrome-top), var(--chrome-mid) 34%, var(--chrome-bottom));
+      border: 1px solid var(--line);
+      border-radius: var(--radius-xl);
+      overflow: hidden;
+      box-shadow: var(--shadow);
+    }
 
-/* SETTINGS */
-function toggleSettings() {
-  const s = document.getElementById("settings");
-  s.style.display = s.style.display === "block" ? "none" : "block";
-}
+    .tab-strip {
+      display: flex;
+      align-items: flex-end;
+      gap: 10px;
+      padding: 14px 16px 0;
+      min-height: 72px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0));
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
 
-/* ENTER KEY */
-document.getElementById("urlBar").addEventListener("keypress", e => {
-  if (e.key === "Enter") go();
-});
+    .window-actions {
+      display: flex;
+      gap: 10px;
+      padding: 0 4px 14px 2px;
+      align-items: center;
+    }
 
-/* INIT */
-newTab();
-</script>
+    .action-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.18);
+      box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.18);
+    }
 
+    .tabs {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 8px;
+      scrollbar-width: none;
+    }
+
+    .tabs::-webkit-scrollbar {
+      display: none;
+    }
+
+    .tab {
+      min-width: 210px;
+      max-width: 260px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 14px;
+      border: 1px solid transparent;
+      border-radius: 18px 18px 0 0;
+      background: var(--tab-idle);
+      color: var(--muted);
+      cursor: pointer;
+      transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease, border-color 0.2s ease;
+    }
+
+    .tab:hover,
+    .tab:focus-visible {
+      background: rgba(255, 255, 255, 0.09);
+      color: var(--text);
+      outline: none;
+    }
+
+    .tab.active {
+      background: linear-gradient(180deg, rgba(45, 48, 58, 0.98), var(--tab-active));
+      color: var(--text);
+      border-color: var(--line);
+      transform: translateY(1px);
+    }
+
+    .tab-favicon {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #6ea8ff, #8ab4f8 55%, #c4d7ff);
+      flex: none;
+      box-shadow: 0 0 0 1px rgba(255,255,255,0.12);
+    }
+
+    .tab-meta {
+      min-width: 0;
+      display: grid;
+      gap: 2px;
+    }
+
+    .tab-title {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      font-size: 0.94rem;
+    }
+
+    .toolbar {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      gap: 12px;
+      align-items: center;
+      padding: 12px 16px 14px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(0,0,0,0.08));
+      border-bottom: 1px solid var(--line);
+    }
+
+    .nav-controls,
+    .tool-controls {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    button {
+      appearance: none;
+      border: none;
+      background: transparent;
+      color: var(--text);
+      font: inherit;
+      cursor: pointer;
+    }
+
+    .icon-button,
+    .utility-button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: var(--button);
+      transition: background 0.2s ease, transform 0.2s ease;
+    }
+
+    .utility-button {
+      width: auto;
+      border-radius: 999px;
+      padding: 0 16px;
+      font-size: 0.92rem;
+      color: var(--muted);
+    }
+
+    .icon-button:hover,
+    .icon-button:focus-visible,
+    .utility-button:hover,
+    .utility-button:focus-visible {
+      background: var(--button-hover);
+      transform: translateY(-1px);
+      outline: none;
+    }
+
+    .address-bar {
+      min-width: 0;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      height: 48px;
+      padding: 0 14px;
+      border-radius: 999px;
+      background: rgba(8, 10, 14, 0.9);
+      border: 1px solid var(--line);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
+    }
+
+    .address-icon {
+      color: var(--accent);
+      font-size: 1rem;
+    }
+
+    .address-input-wrap {
+      min-width: 0;
+      flex: 1;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    #urlBar {
+      width: 100%;
+      background: transparent;
+      border: none;
+      outline: none;
+      color: var(--text);
+      font: inherit;
+      font-size: 0.97rem;
+    }
+
+    #urlBar::placeholder {
+      color: var(--muted);
+    }
+
+    .address-chip {
+      flex: none;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(138, 180, 248, 0.12);
+      color: var(--accent);
+      font-size: 0.78rem;
+      letter-spacing: 0.02em;
+    }
+
+    .viewport {
+      background: #111318;
+      min-height: 0;
+    }
+
+    iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+      background: #fff;
+    }
+
+    @media (max-width: 900px) {
+      body {
+        padding: 0;
+      }
+
+      .browser-window {
+        height: 100vh;
+        border-radius: 0;
+      }
+
+      .toolbar {
+        grid-template-columns: 1fr;
+      }
+
+      .nav-controls,
+      .tool-controls {
+        justify-content: center;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .tab {
+        min-width: 160px;
+      }
+
+      .address-chip,
+      .utility-button span {
+        display: none;
+      }
+
+      .utility-button {
+        width: 40px;
+        padding: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="browser-window">
+    <div class="tab-strip">
+      <div class="window-actions" aria-hidden="true">
+        <span class="action-dot"></span>
+        <span class="action-dot"></span>
+        <span class="action-dot"></span>
+      </div>
+      <div class="tabs" id="tabs"></div>
+      <button class="icon-button" type="button" onclick="newTab()" aria-label="Open new tab">＋</button>
+    </div>
+
+    <div class="toolbar">
+      <div class="nav-controls">
+        <button class="icon-button" type="button" onclick="back()" aria-label="Go back">←</button>
+        <button class="icon-button" type="button" onclick="forward()" aria-label="Go forward">→</button>
+        <button class="icon-button" type="button" onclick="reloadFrame()" aria-label="Reload">⟳</button>
+      </div>
+
+      <div class="address-bar">
+        <div class="address-icon">◉</div>
+        <div class="address-input-wrap">
+          <input id="urlBar" type="text" placeholder="Search Google or type a URL" autocomplete="off" />
+        </div>
+        <div class="address-chip">Worker Proxy</div>
+      </div>
+
+      <div class="tool-controls">
+        <button class="utility-button" type="button" onclick="duplicateTab()"><span>Duplicate</span></button>
+        <button class="utility-button" type="button" onclick="closeTab()"><span>Close Tab</span></button>
+      </div>
+    </div>
+
+    <div class="viewport">
+      <iframe id="frame" title="McCrack Browser viewport"></iframe>
+    </div>
+  </div>
+
+  <script>
+    const proxy = "https://mccrackbrowser.patrickmango499.workers.dev/?url=";
+    const tabs = [];
+    let activeTab = 0;
+
+    function formatTabLabel(url, index) {
+      try {
+        const parsed = new URL(url);
+        return parsed.hostname.replace(/^www\./, "") || `Tab ${index + 1}`;
+      } catch {
+        return `Tab ${index + 1}`;
+      }
+    }
+
+    function normalizeInput(value) {
+      let url = value.trim();
+
+      if (!url) {
+        return tabs[activeTab]?.url || "https://www.google.com";
+      }
+
+      if (!/^https?:\/\//i.test(url)) {
+        if (!url.includes(".") || /\s/.test(url)) {
+          url = `https://www.google.com/search?q=${encodeURIComponent(url)}`;
+        } else {
+          url = `https://${url}`;
+        }
+      }
+
+      return url;
+    }
+
+    function renderTabs() {
+      const tabContainer = document.getElementById("tabs");
+      tabContainer.innerHTML = "";
+
+      tabs.forEach((tab, index) => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = `tab${index === activeTab ? " active" : ""}`;
+        button.innerHTML = `
+          <span class="tab-favicon"></span>
+          <span class="tab-meta">
+            <span class="tab-title">${formatTabLabel(tab.url, index)}</span>
+          </span>
+        `;
+        button.onclick = () => {
+          activeTab = index;
+          renderTabs();
+          loadTab();
+        };
+        tabContainer.appendChild(button);
+      });
+    }
+
+    function updateUrlBar(url) {
+      document.getElementById("urlBar").value = url;
+    }
+
+    function loadTab() {
+      if (!tabs.length) {
+        return;
+      }
+
+      const url = tabs[activeTab].url;
+      document.getElementById("frame").src = proxy + encodeURIComponent(url);
+      updateUrlBar(url);
+    }
+
+    function newTab(url = "https://www.google.com") {
+      tabs.push({ url });
+      activeTab = tabs.length - 1;
+      renderTabs();
+      loadTab();
+    }
+
+    function duplicateTab() {
+      if (!tabs.length) {
+        return;
+      }
+
+      newTab(tabs[activeTab].url);
+    }
+
+    function closeTab() {
+      if (tabs.length <= 1) {
+        return;
+      }
+
+      tabs.splice(activeTab, 1);
+      activeTab = Math.max(0, activeTab - 1);
+      renderTabs();
+      loadTab();
+    }
+
+    function go(urlOverride) {
+      const inputValue = typeof urlOverride === "string"
+        ? urlOverride
+        : document.getElementById("urlBar").value;
+      const url = normalizeInput(inputValue);
+      tabs[activeTab].url = url;
+      renderTabs();
+      loadTab();
+    }
+
+    function back() {
+      document.getElementById("frame").contentWindow.history.back();
+    }
+
+    function forward() {
+      document.getElementById("frame").contentWindow.history.forward();
+    }
+
+    function reloadFrame() {
+      document.getElementById("frame").contentWindow.location.reload();
+    }
+
+    document.getElementById("urlBar").addEventListener("keydown", (event) => {
+      if (event.key === "Enter") {
+        go();
+      }
+    });
+
+    document.getElementById("urlBar").addEventListener("focus", (event) => {
+      event.target.select();
+    });
+
+    newTab();
+  </script>
 </body>
 </html>
