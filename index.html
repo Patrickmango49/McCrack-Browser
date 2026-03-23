@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>McCrack Browser</title>
+  <title>𝕄𝕔ℂ𝕣𝕒𝕔𝕜 Browser</title>
   <style>
     :root {
       --bg-1: #020202;
@@ -309,7 +309,7 @@
         <div class="new-tab-view">
           <div class="hero">
             <div>
-              <h1 class="hero-title">McCrack</h1>
+              <h1 class="hero-title">𝕄𝕔ℂ𝕣𝕒𝕔𝕜</h1>
               <p class="hero-subtitle">Search the web or enter a URL to start browsing.</p>
             </div>
             <form class="hero-search">
@@ -336,7 +336,7 @@
       panel.className = "tab-panel";
       panel.dataset.index = index;
       const frame = document.createElement("iframe");
-      frame.title = `McCrack Browser tab ${index + 1}`;
+      frame.title = `𝕄𝕔ℂ𝕣𝕒𝕔𝕜 Browser tab ${index + 1}`;
       panel.appendChild(frame);
       tab.frame = frame;
       tab.panel = panel;
@@ -351,7 +351,7 @@
           viewport.appendChild(tab.isNewTab ? createNewTabPanel(tab, index) : createIframePanel(tab, index));
         } else {
           tab.panel.dataset.index = index;
-          if (tab.frame) tab.frame.title = `McCrack Browser tab ${index + 1}`;
+          if (tab.frame) tab.frame.title = `𝕄𝕔ℂ𝕣𝕒𝕔𝕜 Browser tab ${index + 1}`;
           viewport.appendChild(tab.panel);
         }
         tab.panel.classList.toggle("active", index === activeTab);
