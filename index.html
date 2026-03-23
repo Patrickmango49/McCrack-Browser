@@ -7,200 +7,112 @@
   <style>
     :root {
       --bg-1: #020202;
-      --bg-2: #0a0a0c;
-      --bg-3: #141418;
-      --panel: rgba(20, 20, 23, 0.94);
-      --panel-2: rgba(31, 31, 36, 0.96);
-      --tab: rgba(54, 54, 60, 0.92);
-      --tab-active: linear-gradient(180deg, rgba(70, 70, 78, 0.98), rgba(38, 38, 44, 0.98));
+      --bg-2: #08090d;
+      --panel: rgba(10, 10, 12, 0.96);
+      --panel-2: rgba(18, 18, 22, 0.98);
       --line: rgba(255, 255, 255, 0.08);
       --line-strong: rgba(255, 255, 255, 0.14);
-      --text: #f4f6fb;
-      --muted: #9da3ae;
+      --text: #f5f7fb;
+      --muted: #98a0ad;
       --accent: #8ab4f8;
-      --shadow: 0 24px 80px rgba(0, 0, 0, 0.55);
-      --radius-xl: 28px;
-      --radius-lg: 18px;
-      --radius-md: 14px;
+      --shadow: 0 24px 80px rgba(0, 0, 0, 0.45);
     }
 
     * { box-sizing: border-box; }
 
     html, body {
       margin: 0;
-      min-height: 100%;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
       font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       color: var(--text);
-      background:
-        radial-gradient(circle at top left, rgba(138, 180, 248, 0.12), transparent 26%),
-        radial-gradient(circle at top right, rgba(255, 255, 255, 0.05), transparent 22%),
-        linear-gradient(180deg, #0d0d10 0%, #060607 16%, #020202 100%);
+      background: radial-gradient(circle at top, rgba(138, 180, 248, 0.08), transparent 24%), linear-gradient(180deg, #050506, #010101 55%, #000 100%);
     }
 
     body {
       display: flex;
-      align-items: stretch;
-      justify-content: center;
-      padding: 22px;
-      overflow: hidden;
     }
 
-    body::before {
-      content: "";
-      position: fixed;
-      inset: 0;
-      pointer-events: none;
-      background: linear-gradient(180deg, rgba(255,255,255,0.04), transparent 20%, transparent 80%, rgba(255,255,255,0.02));
-      opacity: 0.6;
-    }
-
-    .browser-window {
-      width: min(1500px, 100%);
-      height: calc(100vh - 44px);
-      border-radius: var(--radius-xl);
-      overflow: hidden;
-      background: linear-gradient(180deg, rgba(28, 28, 33, 0.98), rgba(14, 14, 17, 0.98));
-      border: 1px solid var(--line);
-      box-shadow: var(--shadow);
+    .browser {
+      flex: 1;
+      min-height: 0;
       display: grid;
       grid-template-rows: auto auto 1fr;
-      position: relative;
+      background: linear-gradient(180deg, rgba(10, 10, 12, 0.98), rgba(0, 0, 0, 0.98));
     }
-
-    .browser-window::after {
-      content: "";
-      position: absolute;
-      inset: 0;
-      pointer-events: none;
-      border-radius: inherit;
-      box-shadow: inset 0 1px 0 rgba(255,255,255,0.07);
-    }
-
-    .window-top {
-      background: linear-gradient(180deg, rgba(34,34,39,0.98), rgba(23,23,27,0.98));
-      border-bottom: 1px solid rgba(255,255,255,0.06);
-      padding: 10px 14px 0;
-    }
-
-    .frame-controls {
-      height: 24px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-bottom: 10px;
-    }
-
-    .frame-controls span {
-      width: 12px;
-      height: 12px;
-      border-radius: 999px;
-      display: inline-block;
-      box-shadow: inset 0 1px 1px rgba(255,255,255,0.18), 0 0 0 1px rgba(0,0,0,0.28);
-    }
-
-    .frame-controls span:nth-child(1) { background: #ff5f57; }
-    .frame-controls span:nth-child(2) { background: #febc2e; }
-    .frame-controls span:nth-child(3) { background: #28c840; }
 
     .tabs-strip {
       display: flex;
-      align-items: end;
+      align-items: stretch;
       gap: 8px;
+      padding: 10px 12px 0;
       overflow-x: auto;
-      padding-bottom: 0;
+      background: rgba(0, 0, 0, 0.4);
+      border-bottom: 1px solid rgba(255,255,255,0.05);
       scrollbar-width: thin;
-      scrollbar-color: rgba(255,255,255,0.12) transparent;
-    }
-
-    .tabs-strip::-webkit-scrollbar { height: 8px; }
-    .tabs-strip::-webkit-scrollbar-thumb {
-      background: rgba(255,255,255,0.12);
-      border-radius: 999px;
     }
 
     .tab {
-      min-width: 210px;
-      max-width: 240px;
+      min-width: 180px;
+      max-width: 230px;
       border: 1px solid transparent;
       border-bottom: none;
       border-radius: 16px 16px 0 0;
-      padding: 11px 14px 10px;
+      padding: 11px 12px 10px;
+      background: linear-gradient(180deg, rgba(45,45,52,0.58), rgba(23,23,28,0.95));
       color: var(--muted);
-      background: linear-gradient(180deg, rgba(58,58,64,0.62), rgba(35,35,39,0.88));
       display: grid;
-      grid-template-columns: auto 1fr auto;
-      gap: 10px;
+      grid-template-columns: 1fr auto;
       align-items: center;
+      gap: 10px;
       cursor: pointer;
-      transition: background 0.18s ease, transform 0.18s ease, color 0.18s ease;
+      transition: 0.18s ease;
     }
-
-    .tab:hover { color: var(--text); }
 
     .tab.active {
-      background: var(--tab-active);
-      border-color: rgba(255,255,255,0.08);
+      background: linear-gradient(180deg, rgba(62,62,70,0.95), rgba(26,26,31,0.98));
+      border-color: var(--line);
       color: var(--text);
-      transform: translateY(1px);
-      position: relative;
-      z-index: 2;
     }
 
-    .tab-favicon {
-      width: 18px;
-      height: 18px;
-      border-radius: 50%;
-      background: linear-gradient(135deg, #5f6368, #303134);
-      display: grid;
-      place-items: center;
-      font-size: 0.72rem;
-      color: #fff;
-      flex: 0 0 auto;
-    }
-
-    .tab-copy {
-      min-width: 0;
-      display: grid;
-      gap: 2px;
-    }
-
-    .tab-title {
-      font-size: 0.92rem;
+    .tab-label {
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-    }
-
-    .tab-url {
-      font-size: 0.76rem;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      opacity: 0.9;
+      font-size: 0.95rem;
     }
 
     .tab-close {
       width: 24px;
       height: 24px;
-      border-radius: 999px;
       border: none;
+      border-radius: 999px;
       background: transparent;
       color: inherit;
-      padding: 0;
+      cursor: pointer;
       display: grid;
       place-items: center;
-      cursor: pointer;
     }
 
-    .tab-close:hover { background: rgba(255,255,255,0.08); }
+    .tab-close:hover,
+    .icon-btn:hover,
+    .go-btn:hover,
+    .hero-search button:hover {
+      background: rgba(255,255,255,0.09);
+    }
+
+    button, input {
+      font: inherit;
+    }
 
     .toolbar {
       display: grid;
       grid-template-columns: auto 1fr auto;
-      gap: 14px;
+      gap: 12px;
       align-items: center;
-      padding: 12px 16px;
-      background: linear-gradient(180deg, rgba(27,27,31,0.98), rgba(20,20,23,0.98));
+      padding: 12px;
+      background: linear-gradient(180deg, rgba(17,17,20,0.98), rgba(10,10,12,0.98));
       border-bottom: 1px solid rgba(255,255,255,0.06);
     }
 
@@ -210,199 +122,153 @@
       gap: 8px;
     }
 
-    button {
+    .icon-btn,
+    .go-btn,
+    .hero-search button {
       appearance: none;
-      border: 1px solid transparent;
-      background: transparent;
+      border: 1px solid rgba(255,255,255,0.08);
+      background: rgba(255,255,255,0.03);
       color: var(--text);
-      font: inherit;
-    }
-
-    .chrome-btn {
-      width: 40px;
-      height: 40px;
       border-radius: 999px;
-      display: grid;
-      place-items: center;
-      color: #d2d6dd;
-      background: rgba(255,255,255,0.02);
+      height: 42px;
+      min-width: 42px;
+      padding: 0 14px;
       cursor: pointer;
-      transition: background 0.18s ease, border-color 0.18s ease, transform 0.18s ease;
+      transition: background 0.18s ease, transform 0.18s ease;
     }
 
-    .chrome-btn:hover {
-      background: rgba(255,255,255,0.08);
-      border-color: rgba(255,255,255,0.08);
+    .icon-btn:hover,
+    .go-btn:hover,
+    .hero-search button:hover {
       transform: translateY(-1px);
     }
 
-    .address-bar {
-      min-width: 0;
-      height: 48px;
+    .address-shell,
+    .hero-search {
       display: grid;
-      grid-template-columns: auto 1fr auto;
-      align-items: center;
-      gap: 12px;
-      border-radius: 999px;
-      padding: 0 10px 0 16px;
-      background: linear-gradient(180deg, rgba(43,43,48,0.98), rgba(31,31,35,0.98));
-      border: 1px solid rgba(255,255,255,0.08);
-      box-shadow: inset 0 1px 0 rgba(255,255,255,0.06);
-    }
-
-    .address-status {
-      width: 28px;
-      height: 28px;
-      border-radius: 999px;
-      display: grid;
-      place-items: center;
-      background: rgba(138,180,248,0.12);
-      color: var(--accent);
-      font-size: 0.92rem;
-    }
-
-    .address-input-wrap {
-      min-width: 0;
-      display: grid;
-      gap: 2px;
-    }
-
-    .address-input-wrap input {
-      width: 100%;
-      border: none;
-      outline: none;
-      background: transparent;
-      color: var(--text);
-      font: inherit;
-      font-size: 0.98rem;
-    }
-
-    .address-hint {
-      color: var(--muted);
-      font-size: 0.75rem;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .launch-btn {
-      height: 36px;
-      padding: 0 18px;
-      border-radius: 999px;
-      background: linear-gradient(180deg, #8ab4f8, #5d8ee6);
-      color: #081120;
-      font-weight: 700;
-      cursor: pointer;
-      box-shadow: 0 8px 20px rgba(93, 142, 230, 0.28);
-    }
-
-    .launch-btn:hover { filter: brightness(1.04); }
-
-    .viewport-shell {
-      min-height: 0;
-      display: grid;
-      grid-template-rows: auto 1fr;
-      background: linear-gradient(180deg, rgba(13,13,15,0.98), rgba(6,6,7,1));
-    }
-
-    .bookmark-bar {
-      display: flex;
-      align-items: center;
+      grid-template-columns: 1fr auto;
       gap: 10px;
-      padding: 10px 16px;
-      border-bottom: 1px solid rgba(255,255,255,0.05);
-      background: rgba(255,255,255,0.015);
-      overflow-x: auto;
+      align-items: center;
     }
 
-    .bookmark-bar button {
-      padding: 9px 14px;
+    .address-shell {
+      min-width: 0;
+    }
+
+    .address-shell input,
+    .hero-search input {
+      width: 100%;
+      border: 1px solid rgba(255,255,255,0.08);
+      outline: none;
       border-radius: 999px;
       background: rgba(255,255,255,0.04);
-      color: #dce1e8;
-      cursor: pointer;
-      border: 1px solid rgba(255,255,255,0.05);
-      white-space: nowrap;
-    }
-
-    .bookmark-bar button:hover {
-      background: rgba(255,255,255,0.09);
-      border-color: rgba(255,255,255,0.1);
+      color: var(--text);
+      height: 46px;
+      padding: 0 18px;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
     }
 
     .viewport {
+      position: relative;
       min-height: 0;
-      padding: 12px;
-      background:
-        radial-gradient(circle at top, rgba(255,255,255,0.03), transparent 25%),
-        linear-gradient(180deg, #101114, #060607 22%);
+      background: #050505;
+    }
+
+    .tab-panel {
+      position: absolute;
+      inset: 0;
+      display: none;
+    }
+
+    .tab-panel.active {
+      display: block;
     }
 
     iframe {
       width: 100%;
       height: 100%;
       border: none;
-      border-radius: 18px;
       background: #fff;
-      box-shadow: 0 16px 36px rgba(0,0,0,0.35);
     }
 
-    @media (max-width: 900px) {
-      body { padding: 0; }
-      .browser-window {
-        width: 100%;
-        height: 100vh;
-        border-radius: 0;
-      }
+    .new-tab-view {
+      width: 100%;
+      height: 100%;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+      background:
+        radial-gradient(circle at top, rgba(138, 180, 248, 0.14), transparent 24%),
+        radial-gradient(circle at bottom, rgba(255,255,255,0.05), transparent 20%),
+        linear-gradient(180deg, #0c0c10 0%, #050507 48%, #000000 100%);
+    }
+
+    .hero {
+      width: min(680px, 100%);
+      text-align: center;
+      display: grid;
+      gap: 26px;
+      justify-items: center;
+    }
+
+    .hero-title {
+      margin: 0;
+      font-size: clamp(3rem, 10vw, 6rem);
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      font-weight: 800;
+      color: #ffffff;
+      text-shadow: 0 18px 40px rgba(0,0,0,0.45);
+    }
+
+    .hero-subtitle {
+      margin: 0;
+      color: var(--muted);
+      font-size: 1rem;
+    }
+
+    .hero-search {
+      width: min(560px, 100%);
+    }
+
+    @media (max-width: 720px) {
       .toolbar {
-        grid-template-columns: 1fr;
+        grid-template-columns: auto 1fr;
       }
-      .toolbar-group { justify-content: center; }
+
+      .toolbar .toolbar-group:last-child {
+        grid-column: 1 / -1;
+        justify-content: flex-end;
+      }
+
+      .tab {
+        min-width: 140px;
+      }
     }
   </style>
 </head>
 <body>
-  <main class="browser-window">
-    <section class="window-top">
-      <div class="frame-controls" aria-hidden="true"><span></span><span></span><span></span></div>
-      <div class="tabs-strip" id="tabs"></div>
-    </section>
+  <main class="browser">
+    <section class="tabs-strip" id="tabs"></section>
 
     <section class="toolbar">
       <div class="toolbar-group">
-        <button class="chrome-btn" onclick="back()" aria-label="Back">←</button>
-        <button class="chrome-btn" onclick="forward()" aria-label="Forward">→</button>
-        <button class="chrome-btn" onclick="reloadFrame()" aria-label="Reload">↻</button>
-        <button class="chrome-btn" onclick="newTab()" aria-label="New tab">＋</button>
+        <button class="icon-btn" onclick="back()" aria-label="Back">←</button>
+        <button class="icon-btn" onclick="forward()" aria-label="Forward">→</button>
+        <button class="icon-btn" onclick="reloadFrame()" aria-label="Reload">↻</button>
       </div>
 
-      <div class="address-bar">
-        <div class="address-status">🔒</div>
-        <label class="address-input-wrap">
-          <input id="urlBar" type="text" placeholder="Search Google or type a URL" autocomplete="off" />
-          <div class="address-hint" id="addressHint">Secure browsing through the existing McCrack worker tunnel.</div>
-        </label>
-        <button class="launch-btn" onclick="go()">Go</button>
+      <div class="address-shell">
+        <input id="urlBar" type="text" placeholder="Search Google or type a URL" autocomplete="off" />
+        <button class="go-btn" onclick="go()">Go</button>
       </div>
 
       <div class="toolbar-group">
-        <button class="chrome-btn" onclick="duplicateTab()" aria-label="Duplicate tab">⧉</button>
-        <button class="chrome-btn" onclick="focusUrlBar()" aria-label="Focus address bar">⌕</button>
+        <button class="icon-btn" onclick="newTab()" aria-label="New tab">＋</button>
       </div>
     </section>
 
-    <section class="viewport-shell">
-      <div class="bookmark-bar">
-        <button class="bookmark" data-url="https://www.google.com">Google</button>
-        <button class="bookmark" data-url="https://www.youtube.com">YouTube</button>
-        <button class="bookmark" data-url="https://github.com">GitHub</button>
-        <button class="bookmark" data-url="https://www.reddit.com">Reddit</button>
-        <button class="bookmark" data-url="https://news.ycombinator.com">Hacker News</button>
-      </div>
-      <div class="viewport">
-        <iframe id="frame" title="McCrack Browser viewport"></iframe>
-      </div>
-    </section>
+    <section class="viewport" id="viewport"></section>
   </main>
 
   <script>
@@ -411,79 +277,18 @@
     const tabs = [];
     let activeTab = 0;
 
-    function formatTabLabel(url, index) {
+    function getTabTitle(tab, index) {
+      if (tab.isNewTab) return `New Tab ${index + 1}`;
       try {
-        const parsed = new URL(url);
-        return parsed.hostname.replace(/^www\./, "") || `Tab ${index + 1}`;
+        return new URL(tab.url).hostname.replace(/^www\./, "") || `Tab ${index + 1}`;
       } catch {
         return `Tab ${index + 1}`;
       }
     }
 
-    function getShortUrl(url) {
-      try {
-        const parsed = new URL(url);
-        return `${parsed.hostname}${parsed.pathname === "/" ? "" : parsed.pathname}`;
-      } catch {
-        return url;
-      }
-    }
-
-    function newTab(url = "https://www.google.com") {
-      tabs.push({ url });
-      activeTab = tabs.length - 1;
-      renderTabs();
-      loadTab();
-    }
-
-    function duplicateTab() {
-      if (!tabs.length) return;
-      newTab(tabs[activeTab].url);
-    }
-
-    function closeTab(index) {
-      if (tabs.length <= 1) return;
-      tabs.splice(index, 1);
-      activeTab = Math.min(activeTab, tabs.length - 1);
-      renderTabs();
-      loadTab();
-    }
-
-    function renderTabs() {
-      const tabContainer = document.getElementById("tabs");
-      tabContainer.innerHTML = "";
-
-      tabs.forEach((tab, i) => {
-        const button = document.createElement("button");
-        button.className = `tab${i === activeTab ? " active" : ""}`;
-        button.type = "button";
-        button.innerHTML = `
-          <div class="tab-favicon">●</div>
-          <div class="tab-copy">
-            <div class="tab-title">${formatTabLabel(tab.url, i)}</div>
-            <div class="tab-url">${getShortUrl(tab.url)}</div>
-          </div>
-          <span class="tab-close" aria-hidden="true">✕</span>
-        `;
-
-        button.addEventListener("click", () => {
-          activeTab = i;
-          renderTabs();
-          loadTab();
-        });
-
-        button.querySelector(".tab-close").addEventListener("click", (event) => {
-          event.stopPropagation();
-          closeTab(i);
-        });
-
-        tabContainer.appendChild(button);
-      });
-    }
-
     function normalizeInput(value) {
       let url = value.trim();
-      if (!url) return tabs[activeTab]?.url || "https://www.google.com";
+      if (!url) return "";
 
       if (!/^https?:\/\//i.test(url)) {
         if (!url.includes(".") || /\s/.test(url)) {
@@ -496,50 +301,164 @@
       return url;
     }
 
-    function updateMeta(url) {
-      document.getElementById("urlBar").value = url;
-      document.getElementById("addressHint").textContent = `Connected via McCrack worker tunnel • ${getShortUrl(url)}`;
+    function createNewTabPanel(tab, index) {
+      const panel = document.createElement("section");
+      panel.className = "tab-panel";
+      panel.dataset.index = index;
+      panel.innerHTML = `
+        <div class="new-tab-view">
+          <div class="hero">
+            <div>
+              <h1 class="hero-title">McCrack</h1>
+              <p class="hero-subtitle">Search the web or enter a URL to start browsing.</p>
+            </div>
+            <form class="hero-search">
+              <input type="text" placeholder="Search Google or type a URL" aria-label="New tab search" />
+              <button type="submit">Go</button>
+            </form>
+          </div>
+        </div>
+      `;
+
+      const input = panel.querySelector("input");
+      const form = panel.querySelector("form");
+      form.addEventListener("submit", (event) => {
+        event.preventDefault();
+        activeTab = Number(panel.dataset.index || 0);
+        go(input.value);
+      });
+      tab.panel = panel;
+      return panel;
     }
 
-    function loadTab() {
-      if (!tabs.length) return;
-      const url = tabs[activeTab].url;
-      document.getElementById("frame").src = proxy + encodeURIComponent(url);
-      updateMeta(url);
+    function createIframePanel(tab, index) {
+      const panel = document.createElement("section");
+      panel.className = "tab-panel";
+      panel.dataset.index = index;
+      const frame = document.createElement("iframe");
+      frame.title = `McCrack Browser tab ${index + 1}`;
+      panel.appendChild(frame);
+      tab.frame = frame;
+      tab.panel = panel;
+      return panel;
+    }
+
+    function syncPanels() {
+      const viewport = document.getElementById("viewport");
+      viewport.innerHTML = "";
+      tabs.forEach((tab, index) => {
+        if (!tab.panel) {
+          viewport.appendChild(tab.isNewTab ? createNewTabPanel(tab, index) : createIframePanel(tab, index));
+        } else {
+          tab.panel.dataset.index = index;
+          if (tab.frame) tab.frame.title = `McCrack Browser tab ${index + 1}`;
+          viewport.appendChild(tab.panel);
+        }
+        tab.panel.classList.toggle("active", index === activeTab);
+      });
+    }
+
+    function renderTabs() {
+      const tabContainer = document.getElementById("tabs");
+      tabContainer.innerHTML = "";
+
+      tabs.forEach((tab, index) => {
+        const button = document.createElement("button");
+        button.className = `tab${index === activeTab ? " active" : ""}`;
+        button.type = "button";
+        button.innerHTML = `
+          <span class="tab-label">${getTabTitle(tab, index)}</span>
+          <span class="tab-close" aria-hidden="true">✕</span>
+        `;
+
+        button.addEventListener("click", () => {
+          activeTab = index;
+          render();
+        });
+
+        button.querySelector(".tab-close").addEventListener("click", (event) => {
+          event.stopPropagation();
+          closeTab(index);
+        });
+
+        tabContainer.appendChild(button);
+      });
+    }
+
+    function updateUrlBar() {
+      const current = tabs[activeTab];
+      document.getElementById("urlBar").value = current?.isNewTab ? "" : current?.url || "";
+    }
+
+    function render() {
+      renderTabs();
+      syncPanels();
+      updateUrlBar();
+    }
+
+    function newTab() {
+      tabs.push({ isNewTab: true, url: "", panel: null, frame: null });
+      activeTab = tabs.length - 1;
+      render();
+      const activeInput = tabs[activeTab].panel?.querySelector("input");
+      if (activeInput) activeInput.focus();
+    }
+
+    function closeTab(index) {
+      if (tabs.length <= 1) return;
+      const [closed] = tabs.splice(index, 1);
+      closed.panel?.remove();
+      activeTab = Math.max(0, Math.min(activeTab > index ? activeTab - 1 : activeTab, tabs.length - 1));
+      render();
+    }
+
+    function ensureFrame(tab, index) {
+      if (!tab.frame) {
+        tab.panel?.remove();
+        tab.panel = null;
+        const viewport = document.getElementById("viewport");
+        const panel = createIframePanel(tab, index);
+        viewport.appendChild(panel);
+      }
+      tab.panel.classList.toggle("active", index === activeTab);
+      return tab.frame;
     }
 
     function go(urlOverride) {
+      const tab = tabs[activeTab];
+      if (!tab) return;
       const inputValue = typeof urlOverride === "string" ? urlOverride : document.getElementById("urlBar").value;
       const url = normalizeInput(inputValue);
-      tabs[activeTab].url = url;
-      renderTabs();
-      loadTab();
+      if (!url) return;
+
+      tab.isNewTab = false;
+      tab.url = url;
+      const frame = ensureFrame(tab, activeTab);
+      frame.src = proxy + encodeURIComponent(url);
+      render();
+    }
+
+    function getActiveFrame() {
+      return tabs[activeTab]?.frame || null;
     }
 
     function back() {
-      document.getElementById("frame").contentWindow.history.back();
+      const frame = getActiveFrame();
+      if (frame) frame.contentWindow.history.back();
     }
 
     function forward() {
-      document.getElementById("frame").contentWindow.history.forward();
+      const frame = getActiveFrame();
+      if (frame) frame.contentWindow.history.forward();
     }
 
     function reloadFrame() {
-      document.getElementById("frame").contentWindow.location.reload();
-    }
-
-    function focusUrlBar() {
-      const urlBar = document.getElementById("urlBar");
-      urlBar.focus();
-      urlBar.select();
+      const frame = getActiveFrame();
+      if (frame) frame.contentWindow.location.reload();
     }
 
     document.getElementById("urlBar").addEventListener("keydown", (event) => {
       if (event.key === "Enter") go();
-    });
-
-    document.querySelectorAll(".bookmark").forEach((button) => {
-      button.addEventListener("click", () => go(button.dataset.url));
     });
 
     newTab();
