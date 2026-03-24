@@ -315,6 +315,7 @@
 
     function getTabTitle(tab, index) {
       if (tab.isNewTab) return `New Tab ${index + 1}`;
+      if (tab.title) return tab.title;
       try {
         return new URL(tab.url).hostname.replace(/^www\./, "") || `Tab ${index + 1}`;
       } catch {
@@ -326,15 +327,13 @@
       let url = value.trim();
       if (!url) return "";
 
-      if (!/^https?:\/\//i.test(url) && !url.startsWith("proxy://")) {
-        if (!url.includes(".") || /\s/.test(url)) {
-          url = `https://www.google.com/search?q=${encodeURIComponent(url)}`;
-        } else {
-          url = `https://${url}`;
-        }
+      if (/^https?:\/\//i.test(url)) return url;
+
+      if (/^[\w.-]+\.[a-z]{2,}/i.test(url)) {
+        return "https://" + url;
       }
 
-      return url.replace(/^proxy:\/\//i, "https://");
+      return `https://www.google.com/search?q=${encodeURIComponent(url)}`;
     }
 
     function createNewTabPanel(tab, index) {
@@ -371,9 +370,36 @@
       const panel = document.createElement("section");
       panel.className = "tab-panel";
       panel.dataset.index = index;
+      const wrapper = document.createElement("div");
+      wrapper.style.position = "relative";
+      wrapper.style.width = "100%";
+      wrapper.style.height = "100%";
+
+      const loader = document.createElement("div");
+      loader.textContent = "Loading...";
+      loader.style.position = "absolute";
+      loader.style.top = "50%";
+      loader.style.left = "50%";
+      loader.style.transform = "translate(-50%, -50%)";
+      loader.style.color = "#aaa";
+
       const frame = document.createElement("iframe");
+      frame.onload = () => {
+        loader.style.display = "none";
+
+        try {
+          const title = frame.contentDocument?.title;
+          if (title) {
+            tabs[activeTab].title = title;
+            renderTabs();
+          }
+        } catch {}
+      };
+
       frame.title = `𝕄𝕔ℂ𝕣𝕒𝕔𝕜 Browser tab ${index + 1}`;
-      panel.appendChild(frame);
+      wrapper.appendChild(loader);
+      wrapper.appendChild(frame);
+      panel.appendChild(wrapper);
       tab.frame = frame;
       tab.panel = panel;
       return panel;
@@ -460,32 +486,9 @@
       return tab.frame;
     }
 
-    function attachFrameNavigation(frame) {
-      frame.onload = () => {
-        try {
-          const doc = frame.contentDocument;
-          if (!doc) return;
-
-          doc.querySelectorAll("a").forEach((link) => {
-            link.addEventListener("click", (event) => {
-              const href = link.getAttribute("href");
-              if (!href) return;
-
-              event.preventDefault();
-              const currentUrl = tabs[activeTab]?.url || "https://example.com";
-              const resolvedHref = new URL(href, currentUrl).href;
-              go(resolvedHref);
-            });
-          });
-        } catch {
-          // Cross-origin frames are not script-accessible.
-        }
-      };
-    }
-
     function toProxyUrl(targetUrl) {
       const cleanOrigin = CLOUDFLARE_PROXY_ORIGIN.replace(/\/$/, "");
-      return `${cleanOrigin}/${targetUrl}`;
+      return `${cleanOrigin}/?url=${encodeURIComponent(targetUrl)}`;
     }
 
     async function go(urlOverride) {
@@ -495,11 +498,23 @@
       const url = normalizeInput(inputValue);
       if (!url) return;
 
+      if (
+        url.includes("youtube.com") ||
+        url.includes("discord.com") ||
+        url.includes("google.com")
+      ) {
+        window.open(url, "_blank");
+        return;
+      }
+
       tab.isNewTab = false;
       tab.url = url;
       const frame = ensureFrame(tab, activeTab);
-      frame.src = toProxyUrl(url);
-      attachFrameNavigation(frame);
+      frame.src = "about:blank";
+
+      setTimeout(() => {
+        frame.src = toProxyUrl(url);
+      }, 50);
       render();
     }
 
@@ -508,19 +523,20 @@
     }
 
     function back() {
-      const frame = getActiveFrame();
-      if (frame) frame.contentWindow.history.back();
+      try {
+        getActiveFrame()?.contentWindow.history.back();
+      } catch {}
     }
 
     function forward() {
-      const frame = getActiveFrame();
-      if (frame) frame.contentWindow.history.forward();
+      try {
+        getActiveFrame()?.contentWindow.history.forward();
+      } catch {}
     }
 
     function reloadFrame() {
-      const tab = tabs[activeTab];
-      if (!tab?.url) return;
-      go(tab.url);
+      const frame = getActiveFrame();
+      if (frame) frame.src = frame.src;
     }
 
     document.getElementById("urlBar").addEventListener("keydown", (event) => {
