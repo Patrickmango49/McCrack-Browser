@@ -271,8 +271,12 @@
     <section class="viewport" id="viewport"></section>
   </main>
 
-  <script>
-    const proxy = "https://openbare-edge.patrickmango499.workers.dev/bare/v3/?url=";
+  <script type="module">
+    import { OpenBareClient } from "./node_modules/@openbare/client/dist/index.js";
+
+    const client = new OpenBareClient({
+      registry: "https://registry.openbare.dev"
+    });
 
     const tabs = [];
     let activeTab = 0;
@@ -424,7 +428,26 @@
       return tab.frame;
     }
 
-    function go(urlOverride) {
+    function attachFrameNavigation(frame) {
+      frame.onload = () => {
+        const doc = frame.contentDocument;
+        if (!doc) return;
+
+        doc.querySelectorAll("a").forEach((link) => {
+          link.addEventListener("click", (event) => {
+            const href = link.getAttribute("href");
+            if (!href) return;
+
+            event.preventDefault();
+            const currentUrl = tabs[activeTab]?.url || "https://example.com";
+            const resolvedHref = new URL(href, currentUrl).href;
+            go(resolvedHref);
+          });
+        });
+      };
+    }
+
+    async function go(urlOverride) {
       const tab = tabs[activeTab];
       if (!tab) return;
       const inputValue = typeof urlOverride === "string" ? urlOverride : document.getElementById("urlBar").value;
@@ -434,7 +457,15 @@
       tab.isNewTab = false;
       tab.url = url;
       const frame = ensureFrame(tab, activeTab);
-      frame.src = proxy + encodeURIComponent(url);
+      try {
+        const response = await client.fetch(url);
+        const html = await response.text();
+        frame.srcdoc = html;
+        attachFrameNavigation(frame);
+      } catch (error) {
+        console.error(error);
+        frame.srcdoc = "<h1>Failed to load page</h1>";
+      }
       render();
     }
 
@@ -453,13 +484,20 @@
     }
 
     function reloadFrame() {
-      const frame = getActiveFrame();
-      if (frame) frame.contentWindow.location.reload();
+      const tab = tabs[activeTab];
+      if (!tab?.url) return;
+      go(tab.url);
     }
 
     document.getElementById("urlBar").addEventListener("keydown", (event) => {
       if (event.key === "Enter") go();
     });
+
+    window.go = go;
+    window.newTab = newTab;
+    window.back = back;
+    window.forward = forward;
+    window.reloadFrame = reloadFrame;
 
     newTab();
   </script>
