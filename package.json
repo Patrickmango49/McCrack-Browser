@@ -10,7 +10,5 @@
   "author": "",
   "license": "ISC",
   "type": "module",
-  "dependencies": {
-    "@openbare/client": "*"
-  }
+  "dependencies": {}
 }
