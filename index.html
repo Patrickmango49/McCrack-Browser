@@ -308,7 +308,9 @@
   </main>
 
   <script type="module">
-    const CLOUDFLARE_PROXY_ORIGIN = "https://mccrackbrowser.patrickmango499.workers.dev";
+    const PROXY_EMBED_BASE = "https://cine-browser-2.b-cdn.net/embed.html?url=";
+    const PROXY_GOOGLE_PREFIX = "https://www.google.com/search?q=";
+    const PROXY_GOOGLE_EMBED_BASE = "https://cine-browser-2.b-cdn.net/embed.html?url=https%3A%2F%2Fwww.google.com/search?q=";
 
     const tabs = [];
     let activeTab = 0;
@@ -323,18 +325,23 @@
     }
 
     function normalizeInput(value) {
-      let url = value.trim();
-      if (!url) return "";
+      const input = value.trim();
+      if (!input) return null;
+
+      let url = input;
+      let isSearchQuery = false;
 
       if (!/^https?:\/\//i.test(url) && !url.startsWith("proxy://")) {
         if (!url.includes(".") || /\s/.test(url)) {
-          url = `https://www.google.com/search?q=${encodeURIComponent(url)}`;
+          isSearchQuery = true;
         } else {
           url = `https://${url}`;
         }
       }
 
-      return url.replace(/^proxy:\/\//i, "https://");
+      return isSearchQuery
+        ? { isSearchQuery: true, query: input, targetUrl: `${PROXY_GOOGLE_PREFIX}${encodeURIComponent(input)}` }
+        : { isSearchQuery: false, query: "", targetUrl: url.replace(/^proxy:\/\//i, "https://") };
     }
 
     function createNewTabPanel(tab, index) {
@@ -483,22 +490,25 @@
       };
     }
 
-    function toProxyUrl(targetUrl) {
-      const cleanOrigin = CLOUDFLARE_PROXY_ORIGIN.replace(/\/$/, "");
-      return `${cleanOrigin}/${targetUrl}`;
+    function toProxyUrl(targetUrl, isSearchQuery = false, query = "") {
+      if (isSearchQuery) {
+        return `${PROXY_GOOGLE_EMBED_BASE}${encodeURIComponent(query)}`;
+      }
+      return `${PROXY_EMBED_BASE}${encodeURIComponent(targetUrl)}`;
     }
 
     async function go(urlOverride) {
       const tab = tabs[activeTab];
       if (!tab) return;
       const inputValue = typeof urlOverride === "string" ? urlOverride : document.getElementById("urlBar").value;
-      const url = normalizeInput(inputValue);
-      if (!url) return;
+      const normalized = normalizeInput(inputValue);
+      if (!normalized) return;
+      const { targetUrl, isSearchQuery, query } = normalized;
 
       tab.isNewTab = false;
-      tab.url = url;
+      tab.url = targetUrl;
       const frame = ensureFrame(tab, activeTab);
-      frame.src = toProxyUrl(url);
+      frame.src = toProxyUrl(targetUrl, isSearchQuery, query);
       attachFrameNavigation(frame);
       render();
     }
