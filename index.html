@@ -45,7 +45,7 @@
     .tabs-strip {
       display: flex;
       align-items: stretch;
-      gap: 8px;
+      gap: 0;
       padding: 10px 12px 0;
       overflow-x: auto;
       background: linear-gradient(180deg, rgba(24,24,28,0.95), rgba(12,12,14,0.96));
@@ -57,8 +57,8 @@
       display: flex;
       align-items: stretch;
       gap: 8px;
-      flex: 1;
-      min-width: 0;
+      width: max-content;
+      min-width: 100%;
     }
 
     .tab {
@@ -109,15 +109,16 @@
     }
 
     .tab-add {
-      align-self: center;
-      width: 38px;
-      min-width: 38px;
-      height: 38px;
-      border-radius: 999px;
-      border: 1px solid rgba(255, 255, 255, 0.13);
-      background: rgba(255, 255, 255, 0.06);
+      align-self: stretch;
+      width: 44px;
+      min-width: 44px;
+      margin-bottom: 2px;
+      border-radius: 14px 14px 0 0;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-bottom: none;
+      background: linear-gradient(180deg, rgba(45,45,55,0.6), rgba(25,25,30,0.9));
       color: var(--text);
-      font-size: 1.25rem;
+      font-size: 1.35rem;
       cursor: pointer;
       transition: 0.2s ease;
     }
@@ -153,6 +154,19 @@
       display: flex;
       align-items: center;
       gap: 8px;
+    }
+
+    .tab-counter {
+      margin-left: 2px;
+      padding: 0 10px;
+      height: 34px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.12);
+      display: grid;
+      place-items: center;
+      color: var(--muted);
+      font-size: 0.85rem;
+      letter-spacing: 0.03em;
     }
 
     .icon-btn,
@@ -287,7 +301,6 @@
   <main class="browser">
     <section class="tabs-strip">
       <div class="tabs-list" id="tabs"></div>
-      <button class="tab-add" onclick="newTab()" aria-label="New tab">＋</button>
     </section>
 
     <section class="toolbar">
@@ -295,6 +308,8 @@
         <button class="icon-btn" onclick="back()" aria-label="Back">←</button>
         <button class="icon-btn" onclick="forward()" aria-label="Forward">→</button>
         <button class="icon-btn" onclick="reloadFrame()" aria-label="Reload">↻</button>
+        <button class="icon-btn" onclick="duplicateTab()" aria-label="Duplicate tab">⧉</button>
+        <div class="tab-counter" id="tabCounter">1 tab</div>
       </div>
 
       <div class="address-shell">
@@ -388,16 +403,21 @@
 
     function syncPanels() {
       const viewport = document.getElementById("viewport");
-      viewport.innerHTML = "";
+      const usedPanels = new Set();
       tabs.forEach((tab, index) => {
         if (!tab.panel) {
           viewport.appendChild(tab.isNewTab ? createNewTabPanel(tab, index) : createIframePanel(tab, index));
         } else {
           tab.panel.dataset.index = index;
           if (tab.frame) tab.frame.title = `𝕄𝕔ℂ𝕣𝕒𝕔𝕜 Browser tab ${index + 1}`;
-          viewport.appendChild(tab.panel);
+          if (tab.panel.parentElement !== viewport) viewport.appendChild(tab.panel);
         }
         tab.panel.classList.toggle("active", index === activeTab);
+        usedPanels.add(tab.panel);
+      });
+
+      Array.from(viewport.children).forEach((panel) => {
+        if (!usedPanels.has(panel)) panel.remove();
       });
     }
 
@@ -426,6 +446,14 @@
 
         tabContainer.appendChild(button);
       });
+
+      const addButton = document.createElement("button");
+      addButton.className = "tab-add";
+      addButton.type = "button";
+      addButton.setAttribute("aria-label", "New tab");
+      addButton.textContent = "＋";
+      addButton.addEventListener("click", newTab);
+      tabContainer.appendChild(addButton);
     }
 
     function updateUrlBar() {
@@ -437,6 +465,8 @@
       renderTabs();
       syncPanels();
       updateUrlBar();
+      const tabCounter = document.getElementById("tabCounter");
+      if (tabCounter) tabCounter.textContent = `${tabs.length} tab${tabs.length === 1 ? "" : "s"}`;
     }
 
     function newTab() {
@@ -453,6 +483,17 @@
       closed.panel?.remove();
       activeTab = Math.max(0, Math.min(activeTab > index ? activeTab - 1 : activeTab, tabs.length - 1));
       render();
+    }
+
+    function duplicateTab() {
+      const source = tabs[activeTab];
+      if (!source) return;
+
+      const clone = { isNewTab: source.isNewTab, url: source.url || "", panel: null, frame: null };
+      tabs.splice(activeTab + 1, 0, clone);
+      activeTab += 1;
+      render();
+      if (!clone.isNewTab && clone.url) go(clone.url);
     }
 
     function ensureFrame(tab, index) {
@@ -537,8 +578,25 @@
       if (event.key === "Enter") go();
     });
 
+    document.addEventListener("keydown", (event) => {
+      if (event.ctrlKey || event.metaKey) {
+        if (event.key.toLowerCase() === "t") {
+          event.preventDefault();
+          newTab();
+        } else if (event.key.toLowerCase() === "w") {
+          event.preventDefault();
+          closeTab(activeTab);
+        } else if (event.key.toLowerCase() === "l") {
+          event.preventDefault();
+          document.getElementById("urlBar").focus();
+          document.getElementById("urlBar").select();
+        }
+      }
+    });
+
     window.go = go;
     window.newTab = newTab;
+    window.duplicateTab = duplicateTab;
     window.back = back;
     window.forward = forward;
     window.reloadFrame = reloadFrame;
