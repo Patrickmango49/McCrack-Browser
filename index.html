@@ -313,7 +313,7 @@
       </div>
 
       <div class="address-shell">
-        <input id="urlBar" type="text" placeholder="Search Google or type a URL" autocomplete="off" />
+        <input id="urlBar" type="text" placeholder="Search DuckDuckGo or type a URL" autocomplete="off" />
         <button class="go-btn" onclick="go()">Go</button>
       </div>
 
@@ -324,8 +324,8 @@
 
   <script type="module">
     const PROXY_EMBED_BASE = "https://cine-browser-2.b-cdn.net/embed.html?url=";
-    const PROXY_GOOGLE_PREFIX = "https://www.google.com/search?q=";
-    const PROXY_GOOGLE_EMBED_BASE = "https://cine-browser-2.b-cdn.net/embed.html?url=https%3A%2F%2Fwww.google.com/search?q=";
+    const PROXY_GOOGLE_PREFIX = "https://duckduckgo.com/?q=";
+    const PROXY_GOOGLE_EMBED_BASE = "https://cine-browser-2.b-cdn.net/embed.html?url=https%3A%2F%2Fduckduckgo.com%2F%3Fq%3D";
 
     const tabs = [];
     let activeTab = 0;
@@ -371,7 +371,7 @@
               <p class="hero-subtitle">Search the web or enter a URL to start browsing.</p>
             </div>
             <form class="hero-search">
-              <input type="text" placeholder="Search Google or type a URL" aria-label="New tab search" />
+              <input type="text" placeholder="Search DuckDuckGo or type a URL" aria-label="New tab search" />
               <button type="submit">Go</button>
             </form>
           </div>
