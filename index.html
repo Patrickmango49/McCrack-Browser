@@ -4,13 +4,26 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>𝕄𝕔ℂ𝕣𝕒𝕔𝕜 Browser</title>
-  <script src="https://uv-on-vercel-two-pi.vercel.app/uv/uv.bundle.js"></script>
-  <script src="https://uv-on-vercel-two-pi.vercel.app/uv/uv.config.js"></script>
-  <script src="https://uv-on-vercel-two-pi.vercel.app/baremux/index.js"></script>
+  <script src="/uv/uv.bundle.js"></script>
+  <script src="/baremux/index.js"></script>
   <script>
+    self.__uv$config = {
+      prefix: "/sw/",
+      bare: "/bare/",
+      encodeUrl: Ultraviolet.encodeUrl,
+      decodeUrl: Ultraviolet.decodeUrl,
+      handler: "/uv/uv.handler.js",
+      client: "/uv/uv.client.js",
+      bundle: "/uv/uv.bundle.js",
+      config: "/uv/uv.config.js",
+      sw: "/uv/sw.js"
+    };
+
     if ("serviceWorker" in navigator) {
       window.addEventListener("load", () => {
-        navigator.serviceWorker.register("https://uv-on-vercel-two-pi.vercel.app/uv/sw.js");
+        navigator.serviceWorker.register("/uv/sw.js")
+          .then(() => console.log("✅ SW registered"))
+          .catch(err => console.error("❌ SW failed", err));
       });
     }
   </script>
@@ -333,8 +346,6 @@
   </main>
 
   <script type="module">
-    const UV_HOST = "https://uv-on-vercel-two-pi.vercel.app";
-
     const tabs = [];
     let activeTab = 0;
 
@@ -537,7 +548,7 @@
 
     function toProxyUrl(targetUrl) {
       const proxiedPath = __uv$config.prefix + __uv$config.encodeUrl(targetUrl);
-      return `${UV_HOST}${proxiedPath}`;
+      return proxiedPath;
     }
 
     async function go(urlOverride) {
