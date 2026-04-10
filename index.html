@@ -4,6 +4,16 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>𝕄𝕔ℂ𝕣𝕒𝕔𝕜 Browser</title>
+  <script src="https://uv-on-vercel-two-pi.vercel.app/uv/uv.bundle.js"></script>
+  <script src="https://uv-on-vercel-two-pi.vercel.app/uv/uv.config.js"></script>
+  <script src="https://uv-on-vercel-two-pi.vercel.app/baremux/index.js"></script>
+  <script>
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", () => {
+        navigator.serviceWorker.register("https://uv-on-vercel-two-pi.vercel.app/uv/sw.js");
+      });
+    }
+  </script>
   <style>
     :root {
       --bg-1: #070707;
@@ -323,9 +333,7 @@
   </main>
 
   <script type="module">
-    const PROXY_EMBED_BASE = "https://cine-browser-2.b-cdn.net/embed.html?url=";
-    const PROXY_GOOGLE_PREFIX = "https://duckduckgo.com/?q=";
-    const PROXY_GOOGLE_EMBED_BASE = "https://cine-browser-2.b-cdn.net/embed.html?url=https%3A%2F%2Fduckduckgo.com%2F%3Fq%3D";
+    const UV_HOST = "https://uv-on-vercel-two-pi.vercel.app";
 
     const tabs = [];
     let activeTab = 0;
@@ -344,19 +352,15 @@
       if (!input) return null;
 
       let url = input;
-      let isSearchQuery = false;
-
-      if (!/^https?:\/\//i.test(url) && !url.startsWith("proxy://")) {
-        if (!url.includes(".") || /\s/.test(url)) {
-          isSearchQuery = true;
-        } else {
-          url = `https://${url}`;
-        }
+      if (!/^https?:\/\//i.test(url)) {
+        url = `https://${url}`;
       }
 
-      return isSearchQuery
-        ? { isSearchQuery: true, query: input, targetUrl: `${PROXY_GOOGLE_PREFIX}${encodeURIComponent(input)}` }
-        : { isSearchQuery: false, query: "", targetUrl: url.replace(/^proxy:\/\//i, "https://") };
+      if (!url.includes(".")) {
+        url = `https://www.google.com/search?q=${encodeURIComponent(input)}`;
+      }
+
+      return { targetUrl: url };
     }
 
     function createNewTabPanel(tab, index) {
@@ -531,11 +535,9 @@
       };
     }
 
-    function toProxyUrl(targetUrl, isSearchQuery = false, query = "") {
-      if (isSearchQuery) {
-        return `${PROXY_GOOGLE_EMBED_BASE}${encodeURIComponent(query)}`;
-      }
-      return `${PROXY_EMBED_BASE}${encodeURIComponent(targetUrl)}`;
+    function toProxyUrl(targetUrl) {
+      const proxiedPath = __uv$config.prefix + __uv$config.encodeUrl(targetUrl);
+      return `${UV_HOST}${proxiedPath}`;
     }
 
     async function go(urlOverride) {
@@ -544,12 +546,12 @@
       const inputValue = typeof urlOverride === "string" ? urlOverride : document.getElementById("urlBar").value;
       const normalized = normalizeInput(inputValue);
       if (!normalized) return;
-      const { targetUrl, isSearchQuery, query } = normalized;
+      const { targetUrl } = normalized;
 
       tab.isNewTab = false;
       tab.url = targetUrl;
       const frame = ensureFrame(tab, activeTab);
-      frame.src = toProxyUrl(targetUrl, isSearchQuery, query);
+      frame.src = toProxyUrl(targetUrl);
       attachFrameNavigation(frame);
       render();
     }
