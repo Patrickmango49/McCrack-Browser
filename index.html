@@ -5,9 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>𝕄𝕔ℂ𝕣𝕒𝕔𝕜 Browser</title>
   <script src="/uv/uv.bundle.js"></script>
+  <script src="/uv/uv.config.js"></script>
   <script src="/baremux/index.js"></script>
   <script>
-    self.__uv$config = {
+    self.__uv$config = self.__uv$config || {
       prefix: "/sw/",
       bare: "/bare/",
       encodeUrl: Ultraviolet.encodeUrl,
@@ -21,7 +22,9 @@
 
     if ("serviceWorker" in navigator) {
       window.addEventListener("load", () => {
-        navigator.serviceWorker.register("/uv/sw.js")
+        navigator.serviceWorker.register("/uv/sw.js", {
+          scope: __uv$config.prefix
+        })
           .then(() => console.log("✅ SW registered"))
           .catch(err => console.error("❌ SW failed", err));
       });
@@ -336,8 +339,8 @@
       </div>
 
       <div class="address-shell">
-        <input id="urlBar" type="text" placeholder="Search DuckDuckGo or type a URL" autocomplete="off" />
-        <button class="go-btn" onclick="go()">Go</button>
+        <input id="urlInput" type="text" placeholder="Search DuckDuckGo or type a URL" autocomplete="off" />
+        <button id="searchButton" class="go-btn" onclick="go()">Search Text</button>
       </div>
 
     </section>
@@ -428,6 +431,13 @@
           if (tab.panel.parentElement !== viewport) viewport.appendChild(tab.panel);
         }
         tab.panel.classList.toggle("active", index === activeTab);
+        if (tab.frame) {
+          if (index === activeTab) {
+            tab.frame.id = "iframeWindow";
+          } else {
+            tab.frame.removeAttribute("id");
+          }
+        }
         usedPanels.add(tab.panel);
       });
 
@@ -473,7 +483,7 @@
 
     function updateUrlBar() {
       const current = tabs[activeTab];
-      document.getElementById("urlBar").value = current?.isNewTab ? "" : current?.url || "";
+      document.getElementById("urlInput").value = current?.isNewTab ? "" : current?.url || "";
     }
 
     function render() {
@@ -554,7 +564,7 @@
     async function go(urlOverride) {
       const tab = tabs[activeTab];
       if (!tab) return;
-      const inputValue = typeof urlOverride === "string" ? urlOverride : document.getElementById("urlBar").value;
+      const inputValue = typeof urlOverride === "string" ? urlOverride : document.getElementById("urlInput").value;
       const normalized = normalizeInput(inputValue);
       if (!normalized) return;
       const { targetUrl } = normalized;
@@ -587,10 +597,9 @@
       go(tab.url);
     }
 
-    document.getElementById("urlBar").addEventListener("keydown", (event) => {
+    document.getElementById("urlInput").addEventListener("keydown", (event) => {
       if (event.key === "Enter") go();
     });
-
     document.addEventListener("keydown", (event) => {
       if (event.ctrlKey || event.metaKey) {
         if (event.key.toLowerCase() === "t") {
@@ -601,8 +610,8 @@
           closeTab(activeTab);
         } else if (event.key.toLowerCase() === "l") {
           event.preventDefault();
-          document.getElementById("urlBar").focus();
-          document.getElementById("urlBar").select();
+          document.getElementById("urlInput").focus();
+          document.getElementById("urlInput").select();
         }
       }
     });
