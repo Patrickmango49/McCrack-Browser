@@ -1,629 +1,139 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>𝕄𝕔ℂ𝕣𝕒𝕔𝕜 Browser</title>
-  <script src="/uv/uv.bundle.js"></script>
-  <script src="/uv/uv.config.js"></script>
-  <script src="/baremux/index.js"></script>
-  <script>
-    self.__uv$config = self.__uv$config || {
-      prefix: "/sw/",
-      bare: "/bare/",
-      encodeUrl: Ultraviolet.encodeUrl,
-      decodeUrl: Ultraviolet.decodeUrl,
-      handler: "/uv/uv.handler.js",
-      client: "/uv/uv.client.js",
-      bundle: "/uv/uv.bundle.js",
-      config: "/uv/uv.config.js",
-      sw: "/uv/sw.js"
-    };
-
-    if ("serviceWorker" in navigator) {
-      window.addEventListener("load", () => {
-        navigator.serviceWorker.register("/uv/sw.js", {
-          scope: __uv$config.prefix
-        })
-          .then(() => console.log("✅ SW registered"))
-          .catch(err => console.error("❌ SW failed", err));
-      });
-    }
-  </script>
-  <style>
-    :root {
-      --bg-1: #070707;
-      --bg-2: #121214;
-      --panel: rgba(13, 13, 15, 0.96);
-      --panel-2: rgba(22, 22, 26, 0.98);
-      --line: rgba(255, 255, 255, 0.12);
-      --line-strong: rgba(255, 255, 255, 0.2);
-      --text: #f5f7fb;
-      --muted: #9aa2af;
-      --accent: #8ab4f8;
-      --shadow: 0 24px 80px rgba(0, 0, 0, 0.45);
-    }
-
-    * { box-sizing: border-box; }
-
-    html, body {
-      margin: 0;
-      width: 100%;
-      height: 100%;
-      overflow: hidden;
-      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      color: var(--text);
-      background: radial-gradient(circle at top, rgba(138, 180, 248, 0.09), transparent 28%), linear-gradient(180deg, #111114 0%, #080809 45%, #000 100%);
-    }
-
-    body {
-      display: flex;
-    }
-
-    .browser {
-      flex: 1;
-      min-height: 0;
-      display: grid;
-      grid-template-rows: auto auto 1fr;
-      background: linear-gradient(180deg, rgba(10, 10, 12, 0.98), rgba(0, 0, 0, 0.98));
-    }
-
-    .tabs-strip {
-      display: flex;
-      align-items: stretch;
-      gap: 0;
-      padding: 10px 12px 0;
-      overflow-x: auto;
-      background: linear-gradient(180deg, rgba(24,24,28,0.95), rgba(12,12,14,0.96));
-      border-bottom: 1px solid rgba(255,255,255,0.05);
-      scrollbar-width: thin;
-    }
-
-    .tabs-list {
-      display: flex;
-      align-items: stretch;
-      gap: 8px;
-      width: max-content;
-      min-width: 100%;
-    }
-
-    .tab {
-      min-width: 180px;
-      max-width: 230px;
-      border: 1px solid transparent;
-      border-bottom: none;
-      border-radius: 16px 16px 0 0;
-      padding: 11px 12px 10px;
-      background: linear-gradient(180deg, rgba(50,50,58,0.52), rgba(25,25,30,0.95));
-      color: var(--muted);
-      display: grid;
-      grid-template-columns: 1fr auto;
-      align-items: center;
-      gap: 10px;
-      cursor: pointer;
-      transition: 0.18s ease;
-    }
-
-    .tab:hover {
-      border-color: rgba(255, 255, 255, 0.1);
-      color: var(--text);
-    }
-
-    .tab.active {
-      background: linear-gradient(180deg, rgba(74,74,86,0.98), rgba(30,30,35,0.98));
-      border-color: var(--line);
-      color: var(--text);
-    }
-
-    .tab-label {
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      font-size: 0.95rem;
-    }
-
-    .tab-close {
-      width: 24px;
-      height: 24px;
-      border: none;
-      border-radius: 999px;
-      background: transparent;
-      color: inherit;
-      cursor: pointer;
-      display: grid;
-      place-items: center;
-    }
-
-    .tab-add {
-      align-self: stretch;
-      width: 44px;
-      min-width: 44px;
-      margin-bottom: 2px;
-      border-radius: 14px 14px 0 0;
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      border-bottom: none;
-      background: linear-gradient(180deg, rgba(45,45,55,0.6), rgba(25,25,30,0.9));
-      color: var(--text);
-      font-size: 1.35rem;
-      cursor: pointer;
-      transition: 0.2s ease;
-    }
-
-    .tab-add:hover {
-      background: rgba(138, 180, 248, 0.25);
-      border-color: rgba(138, 180, 248, 0.65);
-      transform: translateY(-1px);
-    }
-
-    .tab-close:hover,
-    .icon-btn:hover,
-    .go-btn:hover,
-    .hero-search button:hover {
-      background: rgba(255,255,255,0.09);
-    }
-
-    button, input {
-      font: inherit;
-    }
-
-    .toolbar {
-      display: grid;
-      grid-template-columns: auto 1fr;
-      gap: 12px;
-      align-items: center;
-      padding: 12px;
-      background: linear-gradient(180deg, rgba(26,26,30,0.98), rgba(12,12,14,0.98));
-      border-bottom: 1px solid rgba(255,255,255,0.06);
-    }
-
-    .toolbar-group {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .tab-counter {
-      margin-left: 2px;
-      padding: 0 10px;
-      height: 34px;
-      border-radius: 999px;
-      border: 1px solid rgba(255,255,255,0.12);
-      display: grid;
-      place-items: center;
-      color: var(--muted);
-      font-size: 0.85rem;
-      letter-spacing: 0.03em;
-    }
-
-    .icon-btn,
-    .go-btn,
-    .hero-search button {
-      appearance: none;
-      border: 1px solid rgba(255,255,255,0.08);
-      background: rgba(255,255,255,0.03);
-      color: var(--text);
-      border-radius: 999px;
-      height: 42px;
-      min-width: 42px;
-      padding: 0 14px;
-      cursor: pointer;
-      transition: background 0.18s ease, transform 0.18s ease;
-    }
-
-    .icon-btn:hover,
-    .go-btn:hover,
-    .hero-search button:hover {
-      transform: translateY(-1px);
-    }
-
-    .address-shell,
-    .hero-search {
-      display: grid;
-      grid-template-columns: 1fr auto;
-      gap: 10px;
-      align-items: center;
-    }
-
-    .address-shell {
-      min-width: 0;
-    }
-
-    .address-shell input,
-    .hero-search input {
-      width: 100%;
-      border: 1px solid rgba(255,255,255,0.08);
-      outline: none;
-      border-radius: 999px;
-      background: rgba(255,255,255,0.04);
-      color: var(--text);
-      height: 46px;
-      padding: 0 18px;
-      box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
-      transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
-    }
-
-    .address-shell input:focus,
-    .hero-search input:focus {
-      border-color: rgba(138, 180, 248, 0.65);
-      box-shadow: 0 0 0 3px rgba(138, 180, 248, 0.16), inset 0 1px 0 rgba(255,255,255,0.06);
-      background: rgba(255, 255, 255, 0.06);
-    }
-
-    .viewport {
-      position: relative;
-      min-height: 0;
-      background: linear-gradient(180deg, #0a0a0d 0%, #030304 100%);
-    }
-
-    .tab-panel {
-      position: absolute;
-      inset: 0;
-      display: none;
-    }
-
-    .tab-panel.active {
-      display: block;
-    }
-
-    iframe {
-      width: 100%;
-      height: 100%;
-      border: none;
-      background: #fff;
-    }
-
-    .new-tab-view {
-      width: 100%;
-      height: 100%;
-      display: grid;
-      place-items: center;
-      padding: 24px;
-      background:
-        radial-gradient(circle at top, rgba(138, 180, 248, 0.14), transparent 24%),
-        radial-gradient(circle at bottom, rgba(255,255,255,0.05), transparent 20%),
-        linear-gradient(180deg, #0c0c10 0%, #050507 48%, #000000 100%);
-    }
-
-    .hero {
-      width: min(680px, 100%);
-      text-align: center;
-      display: grid;
-      gap: 26px;
-      justify-items: center;
-    }
-
-    .hero-title {
-      margin: 0;
-      font-size: clamp(3rem, 10vw, 6rem);
-      letter-spacing: 0.16em;
-      text-transform: uppercase;
-      font-weight: 800;
-      color: #ffffff;
-      text-shadow: 0 18px 40px rgba(0,0,0,0.45);
-    }
-
-    .hero-subtitle {
-      margin: 0;
-      color: var(--muted);
-      font-size: 1rem;
-    }
-
-    .hero-search {
-      width: min(560px, 100%);
-    }
-
-    @media (max-width: 720px) {
-      .toolbar {
-        grid-template-columns: auto 1fr;
-      }
-
-      .tab {
-        min-width: 140px;
-      }
-    }
-  </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>𝕄𝕔ℂ𝕣𝕒𝕔𝕜 Browser</title>
+<link rel="icon" href="./favicon.ico">
+<style>
+:root{color-scheme:dark;--bg:#08090c;--panel:#15171c;--line:#2b2e36;--text:#f5f7fb;--muted:#a2a8b4;--accent:#9bc4ff}
+*{box-sizing:border-box}html,body{height:100%;margin:0;background:var(--bg);color:var(--text);font:14px Inter,system-ui,-apple-system,"Segoe UI",sans-serif}body{display:grid;grid-template-rows:auto auto 1fr;overflow:hidden}
+.tabs{display:flex;align-items:center;gap:8px;padding:9px 10px 0;background:#111216;border-bottom:1px solid var(--line);overflow-x:auto}.tab{display:flex;align-items:center;gap:16px;min-width:150px;max-width:230px;padding:11px 13px;border:1px solid var(--line);border-bottom:0;border-radius:11px 11px 0 0;background:#1b1d23;color:var(--muted);cursor:pointer}.tab.active{background:#292c34;color:var(--text)}.tab span:first-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1}.close{border:0;background:none;color:inherit;cursor:pointer}.add,.tool{border:1px solid var(--line);background:#1b1d23;color:var(--text);border-radius:10px;padding:10px 13px;cursor:pointer}.add{margin-bottom:7px;font-size:18px}.toolbar{display:flex;gap:9px;align-items:center;padding:12px;background:#111216;border-bottom:1px solid var(--line)}.address{display:flex;gap:9px;flex:1;min-width:0}.address input{min-width:0;flex:1;border:1px solid #333741;border-radius:12px;background:#090a0d;color:var(--text);padding:0 16px;height:43px;outline:none}.address input:focus{border-color:var(--accent);box-shadow:0 0 0 3px #9bc4ff22}.go{background:#eaf1ff;color:#10141b;border:0;border-radius:12px;padding:0 19px;font-weight:700;cursor:pointer}.view{position:relative;min-height:0}.frame{width:100%;height:100%;border:0;background:white;display:none}.frame.active{display:block}.home{position:absolute;inset:0;display:grid;place-items:center;padding:24px;background:radial-gradient(ellipse at 50% 35%,#222a3b 0,transparent 45%),linear-gradient(#0c0d11,#050506)}.home.hidden{display:none}.hero{width:min(600px,100%);text-align:center}.logo{font-size:clamp(38px,8vw,72px);font-weight:850;letter-spacing:.08em;margin:0 0 10px}.sub{color:var(--muted);margin:0 0 28px}.home form{display:flex;gap:9px}.home input{flex:1;min-width:0;border:1px solid #333741;border-radius:999px;background:#111319;color:white;padding:15px 19px;outline:none}.home button{border:0;border-radius:999px;padding:0 23px;background:#eaf1ff;color:#10141b;font-weight:700;cursor:pointer}.status{position:absolute;bottom:12px;left:0;right:0;text-align:center;color:#777f8e;font-size:12px;pointer-events:none}@media(max-width:650px){.toolbar{gap:6px;padding:8px}.tool{padding:9px}.tab{min-width:120px}.go{padding:0 12px}.counter{display:none}}
+</style>
 </head>
 <body>
-  <main class="browser">
-    <section class="tabs-strip">
-      <div class="tabs-list" id="tabs"></div>
-    </section>
+<div class="tabs" id="tabs"><button class="add" id="newTab" title="New tab">+</button></div>
+<div class="toolbar">
+  <button class="tool" id="back" title="Back" aria-label="Back">←</button>
+  <button class="tool" id="forward" title="Forward" aria-label="Forward">→</button>
+  <button class="tool" id="reload" title="Reload" aria-label="Reload">↻</button>
+  <form class="address" id="addressForm"><input id="address" placeholder="Search or enter a website address" autocomplete="off" spellcheck="false" aria-label="Search or enter a website address"><button class="go" type="submit">Go</button></form>
+</div>
+<main class="view" id="view"><section class="home" id="home"><div class="hero"><h1 class="logo">𝕄𝕔ℂ𝕣𝕒𝕔𝕜</h1><p class="sub">A simple, clean browsing experience.</p><form id="homeForm"><input id="homeAddress" placeholder="Search the web or enter a URL" autocomplete="off" aria-label="Search the web or enter a URL"><button>Search</button></form></div><div class="status" id="status">Ready when you are</div></section></main>
+<script>
+(() => {
+  // This page delegates page loading to the configured hosted Scramjet endpoint.
+  // It does not run a local Ultraviolet/Bare engine.
+  const PROXY_ORIGIN = "https://d2quc4oxlcm8y8.cloudfront.net";
+  const PROXY_PREFIX = "/scramjet/";
+  const tabs = [];
+  let active = 0;
+  const $ = id => document.getElementById(id);
+  const view = $("view"), tabBar = $("tabs"), home = $("home");
 
-    <section class="toolbar">
-      <div class="toolbar-group">
-        <button class="icon-btn" onclick="back()" aria-label="Back">←</button>
-        <button class="icon-btn" onclick="forward()" aria-label="Forward">→</button>
-        <button class="icon-btn" onclick="reloadFrame()" aria-label="Reload">↻</button>
-        <button class="icon-btn" onclick="duplicateTab()" aria-label="Duplicate tab">⧉</button>
-        <div class="tab-counter" id="tabCounter">1 tab</div>
-      </div>
-
-      <div class="address-shell">
-        <input id="urlInput" type="text" placeholder="Search DuckDuckGo or type a URL" autocomplete="off" />
-        <button id="searchButton" class="go-btn" onclick="go()">Search Text</button>
-      </div>
-
-    </section>
-
-    <section class="viewport" id="viewport"></section>
-  </main>
-
-  <script type="module">
-    const tabs = [];
-    let activeTab = 0;
-
-    function getTabTitle(tab, index) {
-      if (tab.isNewTab) return `New Tab ${index + 1}`;
-      try {
-        return new URL(tab.url).hostname.replace(/^www\./, "") || `Tab ${index + 1}`;
-      } catch {
-        return `Tab ${index + 1}`;
-      }
+  function normalize(raw) {
+    const value = raw.trim();
+    if (!value) return null;
+    if (/^(about:blank|https?:\/\/)/i.test(value)) {
+      if (value.toLowerCase() === "about:blank") return "about:blank";
+      try { return new URL(value).href; } catch { return null; }
     }
-
-    function normalizeInput(value) {
-      const input = value.trim();
-      if (!input) return null;
-
-      let url = input;
-      if (!/^https?:\/\//i.test(url)) {
-        url = `https://${url}`;
-      }
-
-      if (!url.includes(".")) {
-        url = `https://www.google.com/search?q=${encodeURIComponent(input)}`;
-      }
-
-      return { targetUrl: url };
+    if (/^(localhost|127\.0\.0\.1)(:\d+)?([/?:#]|$)/i.test(value) || /^[\w-]+(\.[\w-]+)+(\/[^\s]*)?([?#][^\s]*)?$/i.test(value)) {
+      try { return new URL("https://" + value).href; } catch { return null; }
     }
+    return "https://www.google.com/search?q=" + encodeURIComponent(value);
+  }
 
-    function createNewTabPanel(tab, index) {
-      const panel = document.createElement("section");
-      panel.className = "tab-panel";
-      panel.dataset.index = index;
-      panel.innerHTML = `
-        <div class="new-tab-view">
-          <div class="hero">
-            <div>
-              <h1 class="hero-title">𝕄𝕔ℂ𝕣𝕒𝕔𝕜</h1>
-              <p class="hero-subtitle">Search the web or enter a URL to start browsing.</p>
-            </div>
-            <form class="hero-search">
-              <input type="text" placeholder="Search DuckDuckGo or type a URL" aria-label="New tab search" />
-              <button type="submit">Go</button>
-            </form>
-          </div>
-        </div>
-      `;
+  function proxyUrl(target) {
+    // The endpoint expects the full destination URL percent-encoded in its path.
+    const withCacheBuster = new URL(target);
+    withCacheBuster.searchParams.set("zx", Date.now().toString());
+    return PROXY_ORIGIN + PROXY_PREFIX + encodeURIComponent(withCacheBuster.href);
+  }
 
-      const input = panel.querySelector("input");
-      const form = panel.querySelector("form");
-      form.addEventListener("submit", (event) => {
-        event.preventDefault();
-        activeTab = Number(panel.dataset.index || 0);
-        go(input.value);
-      });
-      tab.panel = panel;
-      return panel;
-    }
-
-    function createIframePanel(tab, index) {
-      const panel = document.createElement("section");
-      panel.className = "tab-panel";
-      panel.dataset.index = index;
-      const frame = document.createElement("iframe");
-      frame.title = `𝕄𝕔ℂ𝕣𝕒𝕔𝕜 Browser tab ${index + 1}`;
-      panel.appendChild(frame);
-      tab.frame = frame;
-      tab.panel = panel;
-      return panel;
-    }
-
-    function syncPanels() {
-      const viewport = document.getElementById("viewport");
-      const usedPanels = new Set();
-      tabs.forEach((tab, index) => {
-        if (!tab.panel) {
-          viewport.appendChild(tab.isNewTab ? createNewTabPanel(tab, index) : createIframePanel(tab, index));
-        } else {
-          tab.panel.dataset.index = index;
-          if (tab.frame) tab.frame.title = `𝕄𝕔ℂ𝕣𝕒𝕔𝕜 Browser tab ${index + 1}`;
-          if (tab.panel.parentElement !== viewport) viewport.appendChild(tab.panel);
-        }
-        tab.panel.classList.toggle("active", index === activeTab);
-        if (tab.frame) {
-          if (index === activeTab) {
-            tab.frame.id = "iframeWindow";
-          } else {
-            tab.frame.removeAttribute("id");
-          }
-        }
-        usedPanels.add(tab.panel);
-      });
-
-      Array.from(viewport.children).forEach((panel) => {
-        if (!usedPanels.has(panel)) panel.remove();
-      });
-    }
-
-    function renderTabs() {
-      const tabContainer = document.getElementById("tabs");
-      tabContainer.innerHTML = "";
-
-      tabs.forEach((tab, index) => {
-        const button = document.createElement("button");
-        button.className = `tab${index === activeTab ? " active" : ""}`;
-        button.type = "button";
-        button.innerHTML = `
-          <span class="tab-label">${getTabTitle(tab, index)}</span>
-          <span class="tab-close" aria-hidden="true">✕</span>
-        `;
-
-        button.addEventListener("click", () => {
-          activeTab = index;
-          render();
-        });
-
-        button.querySelector(".tab-close").addEventListener("click", (event) => {
-          event.stopPropagation();
-          closeTab(index);
-        });
-
-        tabContainer.appendChild(button);
-      });
-
-      const addButton = document.createElement("button");
-      addButton.className = "tab-add";
-      addButton.type = "button";
-      addButton.setAttribute("aria-label", "New tab");
-      addButton.textContent = "＋";
-      addButton.addEventListener("click", newTab);
-      tabContainer.appendChild(addButton);
-    }
-
-    function updateUrlBar() {
-      const current = tabs[activeTab];
-      document.getElementById("urlInput").value = current?.isNewTab ? "" : current?.url || "";
-    }
-
-    function render() {
-      renderTabs();
-      syncPanels();
-      updateUrlBar();
-      const tabCounter = document.getElementById("tabCounter");
-      if (tabCounter) tabCounter.textContent = `${tabs.length} tab${tabs.length === 1 ? "" : "s"}`;
-    }
-
-    function newTab() {
-      tabs.push({ isNewTab: true, url: "", panel: null, frame: null });
-      activeTab = tabs.length - 1;
-      render();
-      const activeInput = tabs[activeTab].panel?.querySelector("input");
-      if (activeInput) activeInput.focus();
-    }
-
-    function closeTab(index) {
-      if (tabs.length <= 1) return;
-      const [closed] = tabs.splice(index, 1);
-      closed.panel?.remove();
-      activeTab = Math.max(0, Math.min(activeTab > index ? activeTab - 1 : activeTab, tabs.length - 1));
-      render();
-    }
-
-    function duplicateTab() {
-      const source = tabs[activeTab];
-      if (!source) return;
-
-      const clone = { isNewTab: source.isNewTab, url: source.url || "", panel: null, frame: null };
-      tabs.splice(activeTab + 1, 0, clone);
-      activeTab += 1;
-      render();
-      if (!clone.isNewTab && clone.url) go(clone.url);
-    }
-
-    function ensureFrame(tab, index) {
-      if (!tab.frame) {
-        tab.panel?.remove();
-        tab.panel = null;
-        const viewport = document.getElementById("viewport");
-        const panel = createIframePanel(tab, index);
-        viewport.appendChild(panel);
-      }
-      tab.panel.classList.toggle("active", index === activeTab);
-      return tab.frame;
-    }
-
-    function attachFrameNavigation(frame) {
-      frame.onload = () => {
-        try {
-          const doc = frame.contentDocument;
-          if (!doc) return;
-
-          doc.querySelectorAll("a").forEach((link) => {
-            link.addEventListener("click", (event) => {
-              const href = link.getAttribute("href");
-              if (!href) return;
-
-              event.preventDefault();
-              const currentUrl = tabs[activeTab]?.url || "https://example.com";
-              const resolvedHref = new URL(href, currentUrl).href;
-              go(resolvedHref);
-            });
-          });
-        } catch {
-          // Cross-origin frames are not script-accessible.
-        }
-      };
-    }
-
-    function toProxyUrl(targetUrl) {
-      const proxiedPath = __uv$config.prefix + __uv$config.encodeUrl(targetUrl);
-      return proxiedPath;
-    }
-
-    async function go(urlOverride) {
-      const tab = tabs[activeTab];
-      if (!tab) return;
-      const inputValue = typeof urlOverride === "string" ? urlOverride : document.getElementById("urlInput").value;
-      const normalized = normalizeInput(inputValue);
-      if (!normalized) return;
-      const { targetUrl } = normalized;
-
-      tab.isNewTab = false;
-      tab.url = targetUrl;
-      const frame = ensureFrame(tab, activeTab);
-      frame.src = toProxyUrl(targetUrl);
-      attachFrameNavigation(frame);
-      render();
-    }
-
-    function getActiveFrame() {
-      return tabs[activeTab]?.frame || null;
-    }
-
-    function back() {
-      const frame = getActiveFrame();
-      if (frame) frame.contentWindow.history.back();
-    }
-
-    function forward() {
-      const frame = getActiveFrame();
-      if (frame) frame.contentWindow.history.forward();
-    }
-
-    function reloadFrame() {
-      const tab = tabs[activeTab];
-      if (!tab?.url) return;
-      go(tab.url);
-    }
-
-    document.getElementById("urlInput").addEventListener("keydown", (event) => {
-      if (event.key === "Enter") go();
+  function makeTab() {
+    const tab = { url: "", title: "New Tab", frame: document.createElement("iframe"), history: [], historyIndex: -1 };
+    tab.frame.className = "frame";
+    tab.frame.setAttribute("referrerpolicy", "no-referrer");
+    tab.frame.setAttribute("allow", "fullscreen; autoplay; clipboard-read; clipboard-write");
+    tab.frame.addEventListener("load", () => {
+      if (tabs[active] === tab) $("status").textContent = "Loaded through the hosted browsing endpoint";
     });
-    document.addEventListener("keydown", (event) => {
-      if (event.ctrlKey || event.metaKey) {
-        if (event.key.toLowerCase() === "t") {
-          event.preventDefault();
-          newTab();
-        } else if (event.key.toLowerCase() === "w") {
-          event.preventDefault();
-          closeTab(activeTab);
-        } else if (event.key.toLowerCase() === "l") {
-          event.preventDefault();
-          document.getElementById("urlInput").focus();
-          document.getElementById("urlInput").select();
-        }
-      }
+    view.appendChild(tab.frame);
+    tabs.splice(active + 1, 0, tab);
+    active++;
+    render();
+  }
+
+  function open(raw, record = true) {
+    const tab = tabs[active];
+    const target = normalize(raw);
+    if (!tab || !target) { $("status").textContent = "Enter a valid website address or search phrase."; return; }
+    tab.url = target;
+    tab.title = target === "about:blank" ? "New Tab" : (() => { try { return new URL(target).hostname.replace(/^www\./, ""); } catch { return "Web page"; } })();
+    if (record) {
+      tab.history = tab.history.slice(0, tab.historyIndex + 1);
+      tab.history.push(target);
+      tab.historyIndex = tab.history.length - 1;
+    }
+    tab.frame.src = target === "about:blank" ? "about:blank" : proxyUrl(target);
+    home.classList.add("hidden");
+    $("address").value = target === "about:blank" ? "" : target;
+    $("status").textContent = "Connecting…";
+    render();
+  }
+
+  function render() {
+    [...tabBar.querySelectorAll(".tab")].forEach(el => el.remove());
+    tabs.forEach((tab, i) => {
+      const button = document.createElement("button");
+      button.className = "tab" + (i === active ? " active" : "");
+      button.type = "button";
+      const label = document.createElement("span");
+      label.textContent = tab.title;
+      const close = document.createElement("span");
+      close.className = "close"; close.textContent = "×"; close.setAttribute("aria-label", "Close tab");
+      close.addEventListener("click", event => { event.stopPropagation(); removeTab(i); });
+      button.append(label, close);
+      button.addEventListener("click", () => { active = i; sync(); });
+      tabBar.insertBefore(button, $("newTab"));
     });
+    sync();
+  }
 
-    window.go = go;
-    window.newTab = newTab;
-    window.duplicateTab = duplicateTab;
-    window.back = back;
-    window.forward = forward;
-    window.reloadFrame = reloadFrame;
+  function sync() {
+    tabs.forEach((tab, i) => tab.frame.classList.toggle("active", i === active));
+    const tab = tabs[active];
+    const isHome = !tab || !tab.url;
+    home.classList.toggle("hidden", !isHome);
+    $("address").value = isHome ? "" : tab.url;
+    $("back").disabled = !tab || tab.historyIndex <= 0;
+    $("forward").disabled = !tab || tab.historyIndex >= tab.history.length - 1;
+    $("reload").disabled = !tab || !tab.url;
+  }
 
-    newTab();
-  </script>
+  function removeTab(i) {
+    if (tabs.length === 1) {
+      const tab = tabs[0]; tab.url = ""; tab.title = "New Tab"; tab.history = []; tab.historyIndex = -1; tab.frame.src = "about:blank"; active = 0; render(); return;
+    }
+    tabs[i].frame.remove(); tabs.splice(i, 1);
+    if (active > i) active--; else if (active === i) active = Math.min(i, tabs.length - 1);
+    render();
+  }
+
+  $("newTab").addEventListener("click", () => { active = tabs.length - 1; makeTab(); });
+  $("addressForm").addEventListener("submit", e => { e.preventDefault(); open($("address").value); });
+  $("homeForm").addEventListener("submit", e => { e.preventDefault(); open($("homeAddress").value); });
+  $("back").addEventListener("click", () => { const t = tabs[active]; if (t && t.historyIndex > 0) { t.historyIndex--; open(t.history[t.historyIndex], false); } });
+  $("forward").addEventListener("click", () => { const t = tabs[active]; if (t && t.historyIndex < t.history.length - 1) { t.historyIndex++; open(t.history[t.historyIndex], false); } });
+  $("reload").addEventListener("click", () => { const t = tabs[active]; if (t && t.url) { t.frame.src = proxyUrl(t.url); $("status").textContent = "Reloading…"; } });
+  document.addEventListener("keydown", e => {
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "t") { e.preventDefault(); active = tabs.length - 1; makeTab(); }
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "w") { e.preventDefault(); removeTab(active); }
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "l") { e.preventDefault(); $("address").focus(); $("address").select(); }
+  });
+  makeTab();
+})();
+</script>
 </body>
 </html>
