@@ -147,7 +147,7 @@
    b.append(name,close);b.addEventListener("click",()=>{active=i;sync();renderTabs()});tabBar.append(b);
   });
  }
- function sync(){tabs.forEach((t,i)=>t.frame.classList.toggle("active",i===active));const t=tabs[active];home.classList.toggle("hidden",!!(t&&t.url));if(!t||!t.url){$("status").textContent="Ready when you are";$("homeAddress").value=""}}
+ function sync(){tabs.forEach((t,i)=>t.frame.classList.toggle("active",i===active&&!!t.url));const t=tabs[active];home.classList.toggle("hidden",!!(t&&t.url));if(!t||!t.url){$("status").textContent="Ready when you are";$("homeAddress").value=""}}
  function removeTab(i){
   if(tabs.length===1){const t=tabs[0];t.frame.src="about:blank";t.url="";t.title="New Tab";t.history=[];t.index=-1;active=0;renderTabs();sync();return}
   tabs[i].frame.remove();tabs.splice(i,1);if(active>i)active--;else if(active===i)active=Math.min(i,tabs.length-1);renderTabs();sync()
